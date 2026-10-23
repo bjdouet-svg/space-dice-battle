@@ -1,0 +1,3247 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Space Dice Battle - Beta 0.1</title>
+<style>
+/* ===== Variables & base ===== */
+:root {
+  --bg: #030711;
+  --panel: #091323ef;
+  --panel2: #0d1b30;
+  --line: #1c4c72;
+  --cyan: #55d8ff;
+  --blue: #268cff;
+  --orange: #ff9b35;
+  --red: #ff5266;
+  --green: #55e09a;
+  --gold: #ffd15a;
+  --text: #eef7ff;
+  --muted: #91a8c2;
+}
+* {
+  box-sizing: border-box;
+}
+html, body {
+  margin: 0;
+  min-height: 100%;
+  background: #02050b;
+  color: var(--text);
+  font-family: Segoe UI,Arial,sans-serif;
+}
+body {
+  background: radial-gradient(circle at 50% 20%,#102d4b 0,#06111f 38%,#02050b 78%);
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+body:before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: .45;
+  background-image: radial-gradient(#fff 1px,transparent 1px);
+  background-size: 83px 83px;
+  mix-blend-mode: screen;
+}
+.hidden {
+  display: none!important;
+}
+.app {
+  max-width: 1500px;
+  margin: auto;
+  padding: 12px;
+}
+
+/* ===== En-tête (masqué comme en V17 : retirer la classe "hidden" sur <header> pour le réafficher) ===== */
+.topBar {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.brand {
+  text-align: center;
+  letter-spacing: 4px;
+  font-weight: 900;
+  font-size: 30px;
+  text-shadow: 0 0 16px #37bfff88;
+}
+.brand span {
+  color: var(--orange);
+}
+.sub {
+  text-align: center;
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 2px;
+}
+.topActions {
+  display: flex;
+  gap: 7px;
+  justify-content: flex-end;
+}
+
+/* ===== Boutons ===== */
+.btn {
+  background: linear-gradient(#173250,#0a1829);
+  color: var(--text);
+  border: 1px solid #2d668f;
+  border-radius: 8px;
+  padding: 8px 11px;
+  cursor: pointer;
+  font-weight: 700;
+}
+.btn:hover {
+  filter: brightness(1.2);
+}
+.btn.primary {
+  background: linear-gradient(135deg,#167fd1,#174b91);
+  border-color: #48cfff;
+}
+.btn.orange {
+  background: linear-gradient(135deg,#d86816,#713b16);
+  border-color: #ffae4b;
+}
+.btn.good {
+  background: linear-gradient(135deg,#18724e,#10432f);
+  border-color: #53d69a;
+}
+.btn:disabled {
+  opacity: .4;
+  cursor: not-allowed;
+}
+
+/* ===== Panneaux ===== */
+.screen {
+  display: grid;
+  grid-template-columns: 250px minmax(500px,1fr) 350px;
+  gap: 10px;
+}
+.panel {
+  background: linear-gradient(145deg,#0a1729ed,#07101ced);
+  border: 1px solid var(--line);
+  box-shadow: 0 0 0 1px #0a2038,0 14px 35px #000b;
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+}
+.panel:before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(115deg,#55d8ff09,transparent 25%,#ff9b3506 75%,transparent);
+}
+.panelHead {
+  padding: 10px 12px;
+  border-bottom: 1px solid #1a4464;
+  background: #0b1c30;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  color: #d9f3ff;
+}
+
+/* ===== Liste des vaisseaux ===== */
+.players {
+  padding: 8px;
+  display: grid;
+  gap: 7px;
+}
+.player {
+  padding: 9px;
+  border: 1px solid #214866;
+  border-left: 4px solid var(--c);
+  border-radius: 8px;
+  background: #07101d;
+}
+.player.active {
+  box-shadow: 0 0 18px var(--c);
+  border-color: var(--c);
+}
+.player.dead {
+  opacity: .35;
+  filter: grayscale(1);
+}
+.pname {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 900;
+}
+.role {
+  font-size: 9px;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+.bar {
+  height: 7px;
+  background: #172334;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 6px;
+}
+.hp {
+  height: 100%;
+  background: linear-gradient(90deg,#ff354d,#ff8367);
+  width: 50%;
+}
+.pmeta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  margin-top: 5px;
+}
+.shield {
+  color: #65d7ff;
+}
+
+/* ===== Arène : dés et commandes ===== */
+.arena {
+  min-height: 590px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+}
+.turn {
+  text-align: center;
+  font-weight: 900;
+  font-size: 16px;
+  letter-spacing: 1px;
+}
+.status {
+  text-align: center;
+  color: #bcd3ea;
+  min-height: 22px;
+  font-size: 12px;
+  margin: 5px 0;
+}
+.tray {
+  margin: 28px auto 16px;
+  width: min(94%,690px);
+  min-height: 245px;
+  border-radius: 28px;
+  background: radial-gradient(ellipse at 50% 42%,#163b54,#07121e 62%,#030912);
+  border: 2px solid #2a7395;
+  box-shadow: inset 0 0 45px #000,0 0 35px #1b8fc833;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  flex-wrap: wrap;
+  padding: 35px 25px;
+}
+.die {
+  width: 64px;
+  height: 64px;
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+  transition: transform .18s;
+  touch-action: manipulation;
+}
+.die.kept {
+  transform: translateY(-10px);
+  filter: drop-shadow(0 0 9px var(--gold));
+}
+.face {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  background: linear-gradient(145deg,#fff,#b8c5d2);
+  border: 2px solid #7d8b9b;
+  border-radius: 10px;
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  grid-template-rows: repeat(3,1fr);
+  padding: 8px;
+  box-shadow: inset 0 0 8px #fff8;
+  overflow: hidden;
+}
+.faceSymbol {
+  position: absolute;
+  inset: 8px 8px 10px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+.faceSymbol svg {
+  width: 39px;
+  height: 39px;
+  display: block;
+  filter: drop-shadow(0 2px 2px #0003);
+}
+.faceValue {
+  position: absolute;
+  right: 5px;
+  bottom: 3px;
+  color: #111;
+  background: transparent;
+  border: 0;
+  width: auto;
+  height: auto;
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1;
+  box-shadow: none;
+  text-shadow: none;
+}
+.controls {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.hint {
+  text-align: center;
+  color: #718aa4;
+  font-size: 10px;
+  margin-top: 7px;
+}
+.targetChoice {
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  background: linear-gradient(145deg,#102238,#071321);
+  color: var(--text);
+  border: 1px solid #315b7d;
+  border-radius: 9px;
+  cursor: pointer;
+}
+.targetChoice:hover {
+  filter: brightness(1.18);
+  box-shadow: 0 0 14px #268cff33;
+}
+
+/* ===== Récapitulatif des combinaisons ===== */
+.recap {
+  height: 100%;
+  max-height: 610px;
+  overflow: auto;
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 10px;
+}
+.table th {
+  position: sticky;
+  top: 0;
+  background: #0c2035;
+  color: #91ddff;
+  padding: 7px 4px;
+  text-align: left;
+}
+.table td {
+  padding: 6px 4px;
+  border-top: 1px solid #18344c;
+  vertical-align: middle;
+}
+.diceMini {
+  display: inline-flex;
+  gap: 2px;
+}
+.mini {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: #edf3f8;
+  color: #15202b;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 900;
+  border: 1px solid #8c9aaa;
+  position: relative;
+}
+.mini svg {
+  width: 17px;
+  height: 17px;
+}
+.mini small {
+  position: absolute;
+  right: 2px;
+  bottom: 1px;
+  font-size: 8px;
+  color: #111;
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  font-weight: 900;
+}
+
+/* ===== Couleurs des symboles ===== */
+.symbol1 {
+  color: #32e68a!important;
+}
+.symbol2 {
+  color: #ff525f!important;
+}
+.symbol3 {
+  color: #ff9b35!important;
+}
+.symbol4 {
+  color: #36a8ff!important;
+}
+.symbol5 {
+  color: #ff7b22!important;
+}
+.symbol6 {
+  color: #c16cff!important;
+}
+
+/* ===== Fenêtre modale ===== */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: #000b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  z-index: 20;
+}
+.modalBox {
+  width: min(1000px,96vw);
+  max-height: 92vh;
+  overflow: auto;
+  background: linear-gradient(145deg,#0c1d31,#050c17);
+  border: 1px solid #327da8;
+  border-radius: 14px;
+  box-shadow: 0 0 45px #000;
+  color: var(--text);
+  padding: 16px;
+}
+.modalHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.close {
+  font-size: 20px;
+  padding: 4px 9px;
+}
+
+/* ===== Préparation / formulaires ===== */
+.configCard {
+  background: #071322;
+  border: 1px solid #214763;
+  border-radius: 9px;
+  padding: 9px;
+}
+.configCard label {
+  font-size: 10px;
+  color: var(--muted);
+  display: block;
+  margin-bottom: 5px;
+}
+.configCard input, .configCard select {
+  width: 100%;
+  padding: 7px;
+  background: #0e2137;
+  color: #fff;
+  border: 1px solid #315b7d;
+  border-radius: 6px;
+}
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.setup {
+  max-width: 900px;
+  margin: 20px auto;
+}
+.setupPlayers {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0;
+}
+.setupRow {
+  display: grid;
+  grid-template-columns: 1fr 110px 48px;
+  gap: 8px;
+  align-items: center;
+  padding: 9px;
+  background: #071322;
+  border: 1px solid #214763;
+  border-radius: 9px;
+}
+.colorBtn {
+  width: 42px;
+  height: 30px;
+  border-radius: 6px;
+  border: 2px solid #fff5;
+  cursor: pointer;
+}
+.colorPop {
+  position: fixed;
+  background: #071322;
+  border: 1px solid #3981aa;
+  padding: 8px;
+  border-radius: 9px;
+  display: flex;
+  gap: 6px;
+  z-index: 30;
+  box-shadow: 0 10px 30px #000;
+}
+.colorOpt {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid #fff3;
+  cursor: pointer;
+}
+.colorOpt.used {
+  opacity: .2;
+  cursor: not-allowed;
+}
+.setupActions {
+  text-align: center;
+  margin-top: 14px;
+}
+
+/* ===== Textes utilitaires ===== */
+.quick {
+  line-height: 1.55;
+  color: #bfd3e6;
+  font-size: 12px;
+}
+.quick b {
+  color: #fff;
+}
+.log {
+  max-height: 55vh;
+  overflow: auto;
+  font-size: 11px;
+}
+.log div {
+  padding: 5px;
+  border-bottom: 1px solid #173149;
+}
+.notice {
+  padding: 9px;
+  border: 1px solid #795c2a;
+  background: #2a210f;
+  color: #f6d78c;
+  border-radius: 8px;
+  font-size: 11px;
+  margin-bottom: 10px;
+}
+
+/* ===== Administration (masquée dans l’interface publique) ===== */
+.adminIntro {
+  color: #a9bfd2;
+  font-size: 12px;
+  line-height: 1.5;
+  margin-bottom: 14px;
+}
+.adminBlock {
+  margin-top: 14px;
+  border: 1px solid #214763;
+  border-radius: 11px;
+  background: #06101c;
+  overflow: hidden;
+}
+.adminBlockHead {
+  padding: 11px 13px;
+  background: linear-gradient(90deg,#0c263d,#091827);
+  border-bottom: 1px solid #214763;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.adminBlockHead b {
+  font-size: 13px;
+  letter-spacing: .08em;
+}
+.adminBlockHead span {
+  font-size: 10px;
+  color: #7895ad;
+  margin-left: auto;
+}
+.adminBlockBody {
+  padding: 11px;
+}
+.adminValues {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: 8px;
+}
+.adminValue {
+  min-height: 62px;
+  border: 1px solid #1b3d56;
+  border-radius: 8px;
+  background: #091725;
+  padding: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.adminValue strong {
+  display: block;
+  font-size: 11px;
+  color: #e9f5ff;
+}
+.adminValue small {
+  display: block;
+  color: #718ba3;
+  font-size: 9px;
+  margin-top: 3px;
+}
+.adminValue input {
+  width: 72px;
+  padding: 8px 6px;
+  text-align: center;
+  background: #0d2237;
+  color: #fff;
+  border: 1px solid #356b8f;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 900;
+}
+.adminValue input:focus {
+  outline: none;
+  border-color: #55d8ff;
+  box-shadow: 0 0 0 2px #55d8ff22;
+}
+.adminVersion {
+  display: grid;
+  grid-template-columns: 1fr 180px;
+  gap: 10px;
+  align-items: center;
+}
+.adminVersion input {
+  width: 100%;
+  padding: 9px;
+  background: #0d2237;
+  color: #fff;
+  border: 1px solid #356b8f;
+  border-radius: 6px;
+  font-weight: 900;
+}
+.adminActions {
+  position: sticky;
+  bottom: -16px;
+  margin: 16px -16px -16px;
+  padding: 12px 16px;
+  background: #071321f5;
+  border-top: 1px solid #214763;
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+/* ===== Accessibilité ===== */
+.btn:focus-visible,
+.die:focus-visible,
+.colorOpt:focus-visible,
+.targetChoice:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 3px;
+}
+
+/* ===== Responsive ===== */
+@media (max-width:1150px) {
+  .screen {
+    grid-template-columns: 210px minmax(440px,1fr);
+  }
+  .rightCol {
+    grid-column: 1/-1;
+  }
+  .recap {
+    max-height: 360px;
+  }
+}
+@media (max-width:800px) {
+  #mpActions {
+    grid-template-columns: 1fr!important;
+  }
+  .screen {
+    grid-template-columns: 1fr;
+  }
+  .topBar {
+    grid-template-columns: 1fr;
+  }
+  .topActions {
+    justify-content: center;
+  }
+  .tray {
+    min-height: 220px;
+  }
+  .setupRow {
+    grid-template-columns: 1fr 100px 48px;
+  }
+}
+@media (max-width:700px) {
+  .adminValues {
+    grid-template-columns: 1fr 1fr;
+  }
+  .adminVersion {
+    grid-template-columns: 1fr;
+  }
+  .adminActions {
+    justify-content: stretch;
+  }
+  .adminActions .btn {
+    flex: 1;
+  }
+}
+@media (max-width:480px) {
+  .adminValues {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===== Écran d'accueil et pages secondaires ===== */
+.homePanel { max-width: 760px; margin: 30px auto; text-align: center; }
+.homeInner { padding: 26px 18px; }
+.homeTitle { font-size: 24px; margin-bottom: 8px; }
+.homeIntro { margin: 0 0 22px; }
+.homeButtons { display: grid; gap: 12px; max-width: 460px; margin: auto; }
+.homeButtons .btn { font-size: 17px; padding: 16px; }
+.pageBody { padding: 14px; }
+.mpActions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
+.mpActions .btn, .fullWidth { width: 100%; }
+.rulesText { margin-top: 14px; }
+.nameInput { width: 100%; padding: 8px; background: #0e2137; color: #fff; border: 1px solid #315b7d; border-radius: 6px; }
+.playerCount { margin-bottom: 8px; }
+.playerCount label { font-weight: 900; color: #fff; font-size: 12px; margin: 0; }
+.playerCount select { width: 150px; }
+.timerDisplay { display: none; text-align: center; font-size: 13px; font-weight: 900; letter-spacing: 1px; color: #55d8ff; margin: 2px 0 8px; }
+.sideButton { padding: 6px 8px 4px; }
+.trayEmpty { color: #52718c; font-size: 13px; }
+
+/* ===== Utilitaires ===== */
+.mt8 { margin-top: 8px; }
+.mt10 { margin-top: 10px; }
+.mt12 { margin-top: 12px; }
+.faint { opacity: .75; font-size: 12px; }
+.scrollX { overflow: auto; }
+.upper { text-transform: uppercase; }
+.hint.left { text-align: left; }
+.btn.small { padding: 5px 8px; }
+
+/* ===== Choix tactique et cible ===== */
+.planGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 9px; margin-top: 12px; }
+.planCard { border-color: #315b7d; }
+.planTitle { font-weight: 900; color: #eaf7ff; margin-bottom: 5px; }
+.planText { font-size: 12px; line-height: 1.5; margin-bottom: 8px; }
+.planStats { display: flex; gap: 8px; flex-wrap: wrap; font-size: 10px; color: var(--muted); margin-bottom: 9px; }
+.planChoose { width: 100%; }
+.planOthers { margin-top: 12px; }
+.planOthers summary { cursor: pointer; display: block; text-align: center; }
+.planOthersList { display: grid; gap: 8px; margin-top: 10px; }
+.targetList { display: grid; gap: 8px; margin-top: 14px; }
+.targetRow { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+.targetName { font-size: 15px; font-weight: 700; }
+.targetMeta { font-size: 10px; color: var(--muted); margin-top: 3px; }
+.targetRange { font-size: 9px; font-weight: 900; margin-top: 5px; }
+.targetRange.near { color: #55e09a; }
+.targetRange.far { color: #ffad32; }
+.targetDamage { text-align: right; min-width: 85px; }
+.targetDamage .targetMeta { font-size: 9px; margin: 0; }
+.targetDamage strong { font-size: 25px; font-weight: 900; color: #ff8060; }
+
+/* ===== Fenêtres : fin de partie, passage de tour ===== */
+.modalCenter { text-align: center; padding: 8px; }
+.modalCenter.big { padding: 20px; }
+.turnSummary { text-align: left; margin: 8px 0 14px; padding: 12px; border: 1px solid #28506b; background: #071322; border-radius: 10px; }
+.turnSummaryName { font-size: 16px; font-weight: 900; margin-bottom: 9px; }
+.turnSummaryGrid { display: grid; grid-template-columns: 1fr auto; gap: 7px 12px; font-size: 13px; line-height: 1.35; color: #eaf5ff; }
+.turnSummaryGrid b { text-align: right; }
+.turnSummaryGrid .dmg { color: #ff8060; }
+.turnSummaryGrid .shieldVal { color: #55d8ff; }
+.turnSummaryGrid .healVal { color: #55e09a; }
+.turnSummaryEmpty { margin: 8px 0 14px; padding: 10px; border: 1px solid #28506b; background: #071322; border-radius: 10px; color: #bcd3ea; font-size: 12px; }
+.handoffHint { font-size: 12px; color: #bcd3ea; margin: 6px 0 12px; }
+.handoffLabel { font-size: 12px; color: var(--muted); }
+.countdown { font-size: 42px; font-weight: 900; color: #55d8ff; line-height: 1.3; }
+.handoffBtn { width: 100%; margin-top: 10px; padding: 14px; }
+.handoffStatus { font-size: 11px; color: var(--muted); margin-top: 10px; }
+
+/* ===== Salon multijoueur ===== */
+.roomCode { font-size: 24px; letter-spacing: 4px; color: #55d8ff; }
+.setupRow.lobbyRow { grid-template-columns: 1fr auto; }
+.setupRow.lobbyRow.removable { grid-template-columns: 1fr auto auto; }
+.copyFallback { position: fixed; left: 8px; top: 8px; width: 90%; z-index: 99999; font-size: 22px; }
+
+/* ===== Statistiques ===== */
+.statsActions { margin-top: 14px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.statsActions span { font-size: 12px; opacity: .8; flex: 1; min-width: 240px; }
+.statsActions input[type=file] { flex: 1; min-width: 240px; }
+.statsActions select { padding: 7px; background: #0e2137; color: #fff; border: 1px solid #315b7d; border-radius: 6px; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- En-tête masqué (comme en V17). Retirer la classe "hidden" pour le réafficher. -->
+  <header class="topBar hidden">
+    <div><div class="sub">JEU DE COMBAT SPATIAL AUX DÉS</div></div>
+    <div><div class="brand">SPACE <span>DICE</span> BATTLE</div><div class="sub">LANCEZ • COMBINEZ • SURVIVEZ</div></div>
+    <div class="topActions">
+      <button class="btn" onclick="goHome()">ACCUEIL</button>
+      <button class="btn" onclick="openLog()">Historique</button>
+    </div>
+  </header>
+
+  <!-- Accueil -->
+  <section id="homePage" class="panel setup homePanel">
+    <div class="homeInner">
+      <div class="brand homeTitle">CHOISISSEZ VOTRE <span>MODE</span></div>
+      <p class="quick homeIntro">Préparez une partie locale, retrouvez vos amis en ligne ou consultez les règles.</p>
+      <div class="homeButtons">
+        <button class="btn orange" onclick="openOfflineSetup()">🎮 HORS CONNEXION</button>
+        <button class="btn primary" onclick="openOnlineMultiplayer()">🌐 MULTIJOUEUR</button>
+        <button class="btn" onclick="openRulesPage()">📖 RÈGLES DU JEU</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Multijoueur : accueil du service en ligne -->
+  <section id="mpPage" class="panel setup hidden">
+    <div class="panelHead">PRÉPARER UNE PARTIE MULTIJOUEUR</div>
+    <div class="pageBody">
+      <button class="btn" onclick="showHome()">← RETOUR À L’ACCUEIL</button>
+      <div class="quick" style="margin:12px 0">Le service en ligne se connecte automatiquement. Créez un salon ou rejoignez celui d’un autre joueur ; chaque action s’ouvre dans une sous-fenêtre.</div>
+      <div id="mpStatus" class="notice mt10">Connexion au service en ligne…</div>
+      <div id="mpActions" class="mpActions">
+        <div class="configCard"><b>CRÉER UNE PARTIE</b><p class="quick">Ouvrir un salon et inviter d’autres joueurs.</p>
+          <button class="btn good" onclick="mpOpenCreateWindow()">CRÉER UNE PARTIE</button></div>
+        <div class="configCard"><b>REJOINDRE UNE PARTIE</b><p class="quick">Entrer le code du salon d’un ami.</p>
+          <button class="btn primary" onclick="mpOpenJoinWindow()">REJOINDRE UNE PARTIE</button></div>
+      </div>
+      <div id="mpLobby"></div>
+    </div>
+  </section>
+
+  <!-- Règles -->
+  <section id="rulesPage" class="panel setup hidden"><div class="panelHead">RÈGLES DU JEU</div><div class="pageBody"><button class="btn" onclick="showHome()">← RETOUR À L’ACCUEIL</button><div class="quick rulesText"><b>OBJECTIF</b><br>Être le dernier vaisseau vivant.<hr><b>TOUR DE JEU</b><br>1. Lancer les 6 dés.<br>2. Garder les dés de son choix et relancer les autres.<br>3. Jusqu’à 3 lancers au total.<br>4. Combiner les dés comme souhaité.<br>5. Résoudre les effets.<br>6. Passer au joueur suivant.<hr><b>COMBINAISONS</b><br>2 identiques = 0 · 3 = 2 · 4 = 5 · 5 = 9 · 6 = 14 dégâts.<br>Suite de 3 = 0 · suite de 4 = 2 · suite de 5 = 6 · suite de 6 = 10 dégâts + 1 bouclier.<br>3 paires = 1 bouclier · Full Royal = 4 · 2 brelans = 6.<hr><b>LES 1</b><br>Chaque dé 1 peut récupérer 1 PV, entrer dans une combinaison identique ou participer à une suite.<hr><b>SURCHAUFFE</b><br>Chaque dé non utilisé inflige sa valeur en dégâts au joueur actif.<hr><b>PORTÉE</b><br>À 2–3 joueurs : dégâts normaux. À 4 joueurs ou plus, une cible éloignée reçoit 2 dégâts de moins, sans passer sous 0.<hr><b>BOUCLIER</b><br>Maximum 1 en stock. Il s’active uniquement lorsqu’une attaque ennemie ferait tomber à 0 PV : le joueur reste à 1 PV.<hr><b>RÉSOLUTION</b><br>Dégâts infligés → dégâts subis → PV récupérés → vérification de fin de partie.</div></div></section>
+
+  <!-- Partie -->
+  <main id="game" class="screen hidden">
+    <section class="panel">
+      <div class="panelHead">VAISSEAUX EN COMBAT</div>
+      <div id="players" class="players"></div>
+      <div class="sideButton"><button class="btn fullWidth" onclick="openLog()">HISTORIQUE DU COMBAT</button></div>
+    </section>
+
+    <section class="panel arena">
+      <div id="turn" class="turn"></div>
+      <div id="status" class="status" aria-live="polite"></div>
+      <div id="humanTimerDisplay" class="timerDisplay">TEMPS RESTANT : 60 s</div>
+      <div id="tray" class="tray"></div>
+      <div class="controls">
+        <button id="rollBtn" class="btn orange" onclick="roll()">LANCER</button>
+        <button id="combineBtn" class="btn good" onclick="combine()">COMBINER</button>
+        <button id="soundBtn" class="btn" onclick="toggleSound()">SON : ON</button>
+      </div>
+      <div class="hint">Les symboles remplacent les points, mais la valeur reste visible sur chaque dé. Clique sur les dés entre les lancers pour les garder.</div>
+    </section>
+
+    <section class="panel rightCol recap">
+      <div class="panelHead">RÉCAPITULATIF DES COMBINAISONS</div>
+      <div style="padding:5px">
+        <table class="table">
+          <thead><tr><th>Combinaison</th><th>Exemple</th><th>Dégâts</th><th>Bouclier</th></tr></thead>
+          <tbody id="recap"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <div class="rightCol"><button class="btn primary fullWidth" onclick="endCurrentGame()">FIN DE PARTIE</button></div>
+  </main>
+
+  <!-- Préparation hors connexion -->
+  <section id="setup" class="panel setup hidden">
+    <div class="panelHead">PRÉPARATION — HORS CONNEXION</div>
+    <div class="pageBody">
+      <button class="btn" onclick="showHome()">← RETOUR À L’ACCUEIL</button>
+      <h3>Joueurs</h3>
+      <div id="setupPlayers" class="setupPlayers"></div>
+      <div class="setupActions"><button class="btn orange" onclick="startConfiguredGame()">LANCER LA PARTIE</button></div>
+    </div>
+  </section>
+</div>
+
+<!-- Fenêtre modale -->
+<div id="modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modalBox">
+    <div class="modalHead"><h2 id="modalTitle">Journal</h2><button class="btn close" onclick="closeModal()" aria-label="Fermer">×</button></div>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+'use strict';
+
+/* ==========================================================================
+   SPACE DICE BATTLE — moteur de jeu
+   Sections :
+     1. Configuration et constantes      7. Tour de jeu, résolution, IA
+     2. Utilitaires                      8. Minuteurs (tour humain, passage)
+     3. État de la partie                9. Préparation de la partie
+     4. Fenêtre modale et navigation    10. Statistiques et administration
+     5. Dés (rendu SVG, animation)      11. Multijoueur en ligne (Supabase)
+     6. Combinaisons (calcul pur)       12. Démarrage
+   ========================================================================== */
+
+/* ===== 1. CONFIGURATION ET CONSTANTES ===================================== */
+
+/* NB : ces deux déclarations sont réécrites par exportBuildHTML() — ne pas
+   changer leur forme (« const defaults = {…}; » et « const BUILD_VERSION = '…'; »). */
+const defaults = {
+  playersPV: { 2: 40, 3: 35, 4: 30, 5: 30, 6: 25 },
+  maxRolls: 3,
+  healPerOne: 1,
+  distanceReduction: 2,
+  shieldMax: 1,
+  shieldSavePV: 1,
+  pair: 0,
+  triplet: 2,
+  quad: 5,
+  quint: 9,
+  sext: 14,
+  threePairsShield: 1,
+  fullRoyal: 4,
+  twoTriplets: 6,
+  micro: 0,
+  smallStraight: 2,
+  largeStraight: 6,
+  totalStraight: 10,
+  totalStraightShield: 1
+};
+const BUILD_VERSION = 'MASTER';
+const APP_NAME = 'Space Dice Battle';
+
+const PALETTE = ['#3da9ff', '#ff5266', '#ffbf45', '#55d68a', '#b276ff', '#ff8b3d'];
+const AI_NAMES = ['Nova', 'Orion', 'Vega', 'Atlas', 'Lyra'];
+const DICE_COUNT = 6;
+const MIN_PLAYERS = 2;
+const MAX_PLAYERS = 6;
+
+const HUMAN_TURN_MS = 60000;      // temps maximal d'un tour humain
+const HANDOFF_MS = 10000;         // délai de confirmation du passage au joueur suivant
+const ROLL_ANIM_MS = 1450;        // durée de l'animation d'un lancer
+const FAST_BATTLE_MAX_TURNS = 5000; // garde-fou des simulations 100 % IA
+
+const MODAL = {
+  CHOICE: 'CHOIX TACTIQUE',
+  TARGET: 'CHOISIR LA CIBLE',
+  NEXT: 'JOUEUR SUIVANT',
+  END: 'FIN DE PARTIE'
+};
+
+const STORAGE_KEYS = {
+  version: 'sdb_distribution_version_' + BUILD_VERSION,
+  cfg: 'sdb_cfg_v3_' + BUILD_VERSION,
+  stats: 'sdb_stats_' + BUILD_VERSION,
+  mpConfig: 'sdb_mp_config',
+  mpName: 'sdb_mp_name',
+  mpDevice: 'sdb_mp_device_id'
+};
+
+/* localStorage peut lever une exception (mode privé, stockage bloqué) :
+   on l'enveloppe pour que le jeu reste jouable dans tous les cas. */
+const store = {
+  get(key, fallback = null) {
+    try { const v = localStorage.getItem(key); return v === null ? fallback : v; }
+    catch (e) { return fallback; }
+  },
+  set(key, value) { try { localStorage.setItem(key, value); } catch (e) { /* ignoré */ } },
+  remove(key) { try { localStorage.removeItem(key); } catch (e) { /* ignoré */ } }
+};
+
+/* ===== 2. UTILITAIRES ===================================================== */
+
+const $ = id => document.getElementById(id);
+
+const HTML_ESCAPES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+const esc = s => String(s).replace(/[&<>"']/g, m => HTML_ESCAPES[m]);
+
+/* Les couleurs viennent parfois d'autres appareils : on n'injecte que du #rrggbb. */
+const safeColor = c => (/^#[0-9a-f]{6}$/i.test(String(c)) ? c : '#55d8ff');
+
+const rollDie = () => 1 + Math.floor(Math.random() * 6);
+const sum = arr => arr.reduce((a, b) => a + b, 0);
+
+function uuid() {
+  if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+  return 'id-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2);
+}
+
+function deepMerge(a, b) {
+  for (const k in b) {
+    if (k === '__proto__' || k === 'constructor') continue;
+    if (b[k] && typeof b[k] === 'object' && !Array.isArray(b[k])) a[k] = deepMerge(a[k] || {}, b[k]);
+    else a[k] = b[k];
+  }
+  return a;
+}
+const cloneDefaults = () => JSON.parse(JSON.stringify(defaults));
+
+function loadCfg() {
+  try {
+    const saved = JSON.parse(store.get(STORAGE_KEYS.cfg, 'null'));
+    return saved ? deepMerge(cloneDefaults(), saved) : cloneDefaults();
+  } catch (e) {
+    return cloneDefaults();
+  }
+}
+
+/* ===== 3. ÉTAT DE LA PARTIE =============================================== */
+
+let cfg = loadCfg();
+let distributionVersion = store.get(STORAGE_KEYS.version, BUILD_VERSION);
+
+let setupData = [];            // joueurs de l'écran de préparation
+let players = [];              // joueurs de la partie en cours
+let current = 0;               // index du joueur actif
+let dice = [];                 // valeurs des 6 dés
+let kept = [];                 // dés gardés (booléens)
+let rolls = 0;                 // lancers effectués ce tour
+let phase = 'idle';            // idle | rolling | resolving | handoff | over
+let gameOver = true;
+let logs = [];
+let sound = true;
+let target = null;             // index de la cible
+let animating = false;         // animation de lancer en cours
+let lastTurnSummary = null;    // résumé du dernier tour joué (fenêtre de passage)
+let choicePlans = [];          // combinaisons proposées au joueur
+let pendingTargetPlan = null;  // combinaison en attente du choix de cible
+let comboChoosing = false;     // anti double-clic sur « Choisir cette combinaison »
+let localActionUntil = 0;      // fenêtre pendant laquelle un snapshot distant est ignoré
+let fastAIBattle = false;      // simulation rapide quand il ne reste que des IA
+let session = 0;               // change à chaque nouvelle partie / abandon : invalide les anciens minuteurs
+
+const newSession = () => ++session;
+
+/* ===== 4. FENÊTRE MODALE ET NAVIGATION ==================================== */
+
+function openModal(title, html, titleColor, hideClose) {
+  const titleEl = $('modalTitle');
+  titleEl.textContent = title;
+  titleEl.style.color = titleColor || '';
+  const closeBtn = document.querySelector('#modal .modalHead .close');
+  if (closeBtn) closeBtn.style.display = hideClose ? 'none' : 'inline-flex';
+  $('modalBody').innerHTML = html;
+  $('modal').classList.remove('hidden');
+}
+
+/* Ferme la fenêtre ; si elle servait à choisir une cible, le choix est annulé. */
+function closeModal() {
+  const wasTargetSelection = !!pendingTargetPlan;
+  hideModal();
+  $('modalTitle').style.color = '';
+  const closeBtn = document.querySelector('#modal .modalHead .close');
+  if (closeBtn) closeBtn.style.display = 'inline-flex';
+  if (wasTargetSelection) {
+    pendingTargetPlan = null;
+    phase = 'rolling';
+    target = null;
+    render();
+  }
+}
+
+const hideModal = () => $('modal').classList.add('hidden');
+const modalIsOpen = title =>
+  !$('modal').classList.contains('hidden') && $('modalTitle').textContent === title;
+
+const PAGES = ['homePage', 'setup', 'mpPage', 'rulesPage', 'game'];
+function showPage(id) { PAGES.forEach(p => $(p).classList.toggle('hidden', p !== id)); }
+
+function showHome() { showPage('homePage'); }
+function openOfflineSetup() { showPage('setup'); renderSetup(); }
+function openRulesPage() { showPage('rulesPage'); }
+
+/* Bouton « Accueil » de l'en-tête : prévient avant d'abandonner une partie en cours. */
+function goHome() {
+  const inGame = !$('game').classList.contains('hidden') && !gameOver;
+  if (inGame) {
+    if (!confirm('Une partie est en cours. Retourner à l’accueil l’abandonne. Continuer ?')) return;
+    if (mpOnlineMode) { endCurrentGame(true); return; }
+    abortLocalGame();
+  }
+  showHome();
+}
+
+/* Fin d'une partie terminée : on repart de l'accueil (et on ferme la session en ligne). */
+function newGame() {
+  if (mpOnlineMode || mpRoom) mpResetSession();
+  showHome();
+}
+
+function log(message) {
+  logs.push(message);
+  if (logs.length > 300) logs.shift();
+}
+
+function openLog() {
+  const body = logs.length ? logs.map(x => `<div>${esc(x)}</div>`).join('') : 'Aucun événement.';
+  openModal('JOURNAL DU COMBAT', `<div class="log">${body}</div>`);
+}
+
+/* Abandon d'une partie locale : on coupe tous les minuteurs et on vide l'état. */
+function abortLocalGame() {
+  newSession();
+  clearHumanTurnTimer();
+  clearNextPlayerTimer();
+  hideModal();
+  gameOver = true; phase = 'over';
+  target = null; animating = false; fastAIBattle = false; pendingTargetPlan = null;
+  logs = []; players = []; dice = []; kept = []; rolls = 0; current = 0;
+  lastTurnSummary = null;
+}
+
+const hasLivingHuman = () => players.some(p => p.alive && p.human);
+const aliveCount = () => players.filter(p => p.alive).length;
+
+/* Joueur vivant suivant (protégé contre une boucle infinie si plus personne n'est vivant). */
+function nextAlive(i) {
+  for (let k = 1; k <= players.length; k++) {
+    const x = (i + k) % players.length;
+    if (players[x].alive) return x;
+  }
+  return i;
+}
+
+/* Bouton « Fin de partie » : abandon (avec confirmation) ou retour à la préparation. */
+async function endCurrentGame(alreadyConfirmed = false) {
+  if (mpOnlineMode && players.length) { await mpLeaveGame(alreadyConfirmed); return; }
+  if (gameOver) { openOfflineSetup(); return; }
+  if (!confirm('Abandonner la partie en cours ?')) return;
+  abortLocalGame();
+  openOfflineSetup();
+}
+/* ===== 5. DÉS : RENDU SVG ET ANIMATION =================================== */
+
+const FACE_COLORS = { 1: '#36e69a', 2: '#ff5966', 3: '#ffad32', 4: '#39a8ff', 5: '#ff7b2a', 6: '#bd72ff' };
+const FACE_LABELS = { 1: 'RÉPARATION', 2: 'LASER', 3: 'DOUBLE LASER', 4: 'MISSILE', 5: 'EXPLOSION', 6: 'ÉNERGIE' };
+
+/* Icônes des 6 faces : chaque fonction reçoit la couleur du symbole. */
+const FACE_ICONS = {
+  1: c => `<g fill="none" stroke="${c}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="32" cy="32" r="8" fill="${c}" fill-opacity=".18"/><path d="M32 9v13M32 42v13M9 32h13M42 32h13"/><path d="M17 17l9 9M38 38l9 9M47 17l-9 9M26 38l-9 9"/><path d="M28 9l4-4 4 4M55 28l4 4-4 4M28 55l4 4 4-4M9 28l-4 4 4 4"/></g><circle cx="32" cy="32" r="3" fill="${c}"/>`,
+  2: c => `<g fill="none" stroke="${c}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M8 32h18"/><path d="M29 32l9-9"/><path d="M29 32l9 9"/><path d="M39 32h17" stroke-width="4"/><path d="M49 26l7 6-7 6"/></g><circle cx="28" cy="32" r="3" fill="${c}"/>`,
+  3: c => `<g fill="none" stroke="${c}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M7 23h16"/><path d="M25 23l8-7"/><path d="M25 23l8 7"/><path d="M34 23h20" stroke-width="4"/><path d="M47 18l7 5-7 5"/><path d="M7 41h16"/><path d="M25 41l8-7"/><path d="M25 41l8 7"/><path d="M34 41h20" stroke-width="4"/><path d="M47 36l7 5-7 5"/></g>`,
+  4: c => `<g fill="${c}" stroke="${c}" stroke-linejoin="round"><path d="M12 34l18-18 19 16-18 18z"/><path d="M30 16l4-8 5 7-4 7z"/><path d="M48 32l9 4-8 5-6-4z"/><path d="M12 34l-6 8 10-3z"/></g><path d="M19 34l11-10" stroke="#fff" stroke-width="2" opacity=".8"/>`,
+  5: c => `<path d="M32 6l5 14 11-9-3 14 15-1-11 10 10 8-14 0 4 15-12-9-7 13-4-15-14 4 7-13-14-5 14-5-8-13 14 4z" fill="${c}"/><circle cx="32" cy="32" r="6" fill="#fff" opacity=".9"/><circle cx="32" cy="32" r="3" fill="${c}"/>`,
+  6: c => `<g fill="none" stroke="${c}" stroke-linecap="round"><path d="M32 8c14 0 23 10 23 23 0 14-11 25-25 25-13 0-24-10-24-23 0-11 7-20 17-23" stroke-width="4"/><path d="M32 17c9 0 15 6 15 14 0 9-7 16-16 16-8 0-14-6-14-14 0-7 4-12 10-15" stroke-width="3"/><path d="M32 27c4 0 7 3 7 7 0 4-3 7-7 7-4 0-7-3-7-7 0-3 2-6 5-7" stroke-width="3"/></g><circle cx="32" cy="34" r="3" fill="${c}"/>`,
+};
+
+function faceSVG(v) {
+  const icon = FACE_ICONS[v];
+  if (!icon) return '';
+  return `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${icon(FACE_COLORS[v])}</svg>`;
+}
+
+function faceHTML(v) {
+  return `<div class="faceSymbol symbol${v}" title="${FACE_LABELS[v]}">${faceSVG(v)}</div><span class="faceValue">${v}</span>`;
+}
+const cubeHTML = v => `<div class="face">${faceHTML(v)}</div>`;
+
+function renderDice() {
+  const tray = $('tray');
+  if (!dice.length) {
+    tray.innerHTML = '<div class="trayEmpty">Les six dés apparaîtront ici.</div>';
+    return;
+  }
+  tray.innerHTML = dice.map((v, i) => {
+    return `<div class="die${kept[i] ? ' kept' : ''}" data-i="${i}" role="button" tabindex="0" aria-pressed="${!!kept[i]}" ` +
+      `aria-label="Dé ${v} — ${FACE_LABELS[v]}">${cubeHTML(v)}</div>`;
+  }).join('');
+}
+
+/* Clic ou clavier (Entrée / Espace) sur un dé : un seul écouteur sur le plateau. */
+function initDiceTray() {
+  const tray = $('tray');
+  tray.addEventListener('click', e => {
+    const die = e.target.closest('.die');
+    if (die) toggleKeep(+die.dataset.i);
+  });
+  tray.addEventListener('keydown', e => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const die = e.target.closest('.die');
+    if (!die) return;
+    e.preventDefault();
+    toggleKeep(+die.dataset.i);
+    const again = tray.querySelector(`.die[data-i="${die.dataset.i}"]`); // le dé a été recréé par le rendu
+    if (again) again.focus();
+  });
+}
+
+function toggleKeep(i) {
+  if (mpOnlineMode && !mpIsMyTurn()) return;
+  if (!players[current]?.human || phase !== 'rolling' || rolls < 1 || animating) return;
+  kept[i] = !kept[i];
+  renderDice();
+}
+
+let audioCtx = null;
+function playDiceSound() {
+  if (!sound) return;
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    audioCtx = audioCtx || new AudioCtx();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const t = audioCtx.currentTime;
+    [0, .08, .17, .29].forEach((delay, j) => {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'square';
+      osc.frequency.value = 180 + j * 55;
+      gain.gain.setValueAtTime(.0001, t + delay);
+      gain.gain.exponentialRampToValueAtTime(.045, t + delay + .015);
+      gain.gain.exponentialRampToValueAtTime(.0001, t + delay + .06);
+      osc.connect(gain).connect(audioCtx.destination);
+      osc.start(t + delay);
+      osc.stop(t + delay + .07);
+    });
+  } catch (e) { /* le son est facultatif */ }
+}
+function toggleSound() { sound = !sound; render(); }
+
+/* Effet de « roulette » : chaque dé libre change de face puis se fige à sa valeur finale. */
+function animateRoll(dieElements, finalValues) {
+  const start = performance.now();
+  dieElements.forEach((el, i) => {
+    if (kept[i]) return;
+    el.animate([
+      { transform: 'translateY(0) rotateZ(0deg)' },
+      { transform: 'translateY(-7px) rotateZ(2deg)', offset: .18 },
+      { transform: 'translateY(5px) rotateZ(-2deg)', offset: .42 },
+      { transform: 'translateY(-3px) rotateZ(1deg)', offset: .68 },
+      { transform: 'translateY(0) rotateZ(0deg)' }
+    ], { duration: ROLL_ANIM_MS, easing: 'cubic-bezier(.18,.72,.2,1)', fill: 'forwards' });
+
+    const stopAt = 720 + i * 105;
+    let lastSwap = 0, locked = false;
+    const spin = now => {
+      if (locked) return;
+      if (now - start < stopAt) {
+        if (now - lastSwap > 70) { el.innerHTML = cubeHTML(rollDie()); lastSwap = now; }
+        requestAnimationFrame(spin);
+      } else {
+        locked = true;
+        el.innerHTML = cubeHTML(finalValues[i]);
+      }
+    };
+    requestAnimationFrame(spin);
+  });
+}
+
+/* Lance les dés non gardés ; `done` est appelé à la fin de l'animation. */
+function doRoll(done) {
+  if (gameStatsCurrent && !gameStatsCurrent.committed) gameStatsCurrent.rolls++;
+  const mySession = session;
+  animating = true;
+  $('rollBtn').disabled = true;
+
+  const finalValues = dice.slice();
+  for (let i = 0; i < DICE_COUNT; i++) if (!kept[i]) finalValues[i] = rollDie();
+  rolls++;
+  playDiceSound();
+
+  // Les 6 dés sont affichés tout de suite : le plateau ne reste jamais vide pendant l'animation.
+  dice = finalValues.slice();
+  renderDice();
+  animateRoll([...document.querySelectorAll('.die')], finalValues);
+
+  setTimeout(() => {
+    if (mySession !== session) return;   // partie abandonnée entre-temps
+    dice = finalValues.slice();
+    animating = false;
+    renderDice();
+    if (done) done();
+  }, ROLL_ANIM_MS + 40);
+}
+
+function roll() {
+  if (mpOnlineMode && !mpIsMyTurn()) return;
+  if (animating || phase !== 'rolling' || !players[current]?.human || rolls >= cfg.maxRolls) return;
+  doRoll(render);
+}
+
+/* ===== 6. COMBINAISONS (CALCUL PUR) ======================================= */
+
+const counts = a => { const c = [0, 0, 0, 0, 0, 0, 0]; a.forEach(v => c[v]++); return c; };
+const same = a => a.length > 1 && a.every(v => v === a[0]);
+function straight(a) {
+  const s = [...new Set(a)].sort((x, y) => x - y);
+  return s.length === a.length && s.every((v, i) => i === 0 || v === s[i - 1] + 1);
+}
+
+/* Évalue un groupe de dés : identiques (2 à 6) ou suite (3 à 6). Retourne null si invalide. */
+function evalGroup(v) {
+  const n = v.length;
+  if (same(v)) {
+    const table = {
+      2: ['Paire', cfg.pair], 3: ['Brelan', cfg.triplet], 4: ['Carré', cfg.quad],
+      5: ['Quinte', cfg.quint], 6: ['Sextuplé', cfg.sext]
+    };
+    return { name: table[n][0], d: table[n][1], s: 0 };
+  }
+  if (n >= 3 && straight(v)) {
+    const table = {
+      3: ['Micro-suite', cfg.micro, 0], 4: ['Petite Suite', cfg.smallStraight, 0],
+      5: ['Grande Suite', cfg.largeStraight, 0], 6: ['Suite Totale', cfg.totalStraight, cfg.totalStraightShield]
+    };
+    return { name: table[n][0], d: table[n][1], s: table[n][2] };
+  }
+  return null;
+}
+
+/* Tous les sous-ensembles non vides d'un ensemble de n dés (mis en cache : n est toujours 6). */
+const subsetCache = {};
+function subsets(n) {
+  if (!subsetCache[n]) {
+    const all = [];
+    for (let mask = 1; mask < (1 << n); mask++) {
+      const ix = [];
+      for (let i = 0; i < n; i++) if (mask >> i & 1) ix.push(i);
+      all.push([mask, ix]);
+    }
+    subsetCache[n] = all;
+  }
+  return subsetCache[n];
+}
+
+/* Toutes les façons distinctes de résoudre ces dés. Chaque plan :
+   { groups, d: dégâts, s: boucliers, heat: surchauffe, heal: PV rendus, score }.
+   Les dés hors combinaison sont « orphelins » : un 1 soigne, les autres surchauffent. */
+function plans(vals) {
+  const n = vals.length;
+  const out = [];
+
+  function addPlan(groups, d, s, usedIdx, scoreBonus = 0) {
+    const used = new Set(usedIdx);
+    let heat = 0, heal = 0;
+    for (let i = 0; i < n; i++) {
+      if (used.has(i)) continue;
+      if (vals[i] === 1) heal += cfg.healPerOne; else heat += vals[i];
+    }
+    out.push({ groups, d, s, heat, heal, score: d * 10 + s * 8 + heal * 2 - heat * 4 + scoreBonus });
+  }
+
+  // Partitions en groupes valides ; le premier dé libre est soit groupé, soit laissé orphelin.
+  function rec(mask, groups) {
+    if (!mask) {
+      const used = [];
+      let d = 0, s = 0;
+      groups.forEach(g => { g.ix.forEach(i => used.push(i)); d += g.e.d; s += g.e.s; });
+      addPlan(groups, d, s, used);
+      return;
+    }
+    let first = 0;
+    while (!(mask >> first & 1)) first++;
+    for (const [m, ix] of subsets(n)) {
+      if (!(m >> first & 1) || (m & mask) !== m) continue;
+      const e = evalGroup(ix.map(i => vals[i]));
+      if (e) rec(mask ^ m, groups.concat({ ix, e }));
+    }
+    rec(mask ^ (1 << first), groups);
+  }
+  rec((1 << n) - 1, []);
+
+  // Combinaisons spéciales à 6 dés (valeurs exactes des occurrences).
+  if (n === DICE_COUNT) {
+    const c = counts(vals);
+    const occurrences = Object.values(c).filter(x => x > 0);
+    const countOf = k => occurrences.filter(x => x === k).length;
+    const all = [0, 1, 2, 3, 4, 5];
+
+    if (countOf(2) === 3 && occurrences.length === 3) {
+      addPlan([{ ix: all, e: { name: '3 Paires', d: 0, s: cfg.threePairsShield } }],
+        0, cfg.threePairsShield, all, 100);
+    }
+    if (countOf(3) === 1 && countOf(2) === 1 && countOf(1) === 1) {
+      const used = all.filter(i => c[vals[i]] >= 2);  // le dé seul reste orphelin
+      addPlan([{ ix: used, e: { name: 'Full Royal', d: cfg.fullRoyal, s: 0 } }],
+        cfg.fullRoyal, 0, used, 80);
+    }
+    if (countOf(3) === 2) {
+      addPlan([{ ix: all, e: { name: '2 Brelans', d: cfg.twoTriplets, s: 0 } }],
+        cfg.twoTriplets, 0, all, 90);
+    }
+  }
+
+  // Déduplication : mêmes groupes (par nom) et mêmes effets = même plan.
+  const seen = new Set();
+  const unique = [];
+  for (const p of out) {
+    const sig = p.groups.map(g => g.e.name).sort().join('|') + `|${p.d}|${p.s}|${p.heat}|${p.heal}`;
+    if (!seen.has(sig)) { seen.add(sig); unique.push(p); }
+  }
+  unique.sort((a, b) => b.score - a.score);
+  return unique.length ? unique : [{
+    groups: [], d: 0, s: 0, heat: sum(vals),
+    heal: vals.filter(v => v === 1).length * cfg.healPerOne, score: 0
+  }];
+}
+
+/* Signature complète d'un plan (répartition des dés comprise). */
+function planSignature(p) {
+  const groups = p.groups.map(g => g.e.name + ':' + g.ix.slice().sort((a, b) => a - b).join(',')).sort().join('|');
+  return `${groups}|${p.d}|${p.s}|${p.heat}|${p.heal}`;
+}
+
+/* Classe les plans selon la stratégie : attack | heal | defense. */
+function rankPlans(ps, mode) {
+  const high = (x, y) => y - x;   // valeur la plus élevée d'abord
+  const low = (x, y) => x - y;    // valeur la plus faible d'abord
+  return ps.slice().sort((a, b) => {
+    if (mode === 'attack') return high(a.d, b.d) || high(a.s, b.s) || high(a.heal, b.heal) || low(a.heat, b.heat);
+    if (mode === 'heal') return high(a.heal, b.heal) || low(a.heat, b.heat) || high(a.s, b.s) || high(a.d, b.d);
+    return low(a.heat, b.heat) || high(a.s, b.s) || high(a.heal, b.heal) || high(a.d, b.d); // defense
+  });
+}
+
+function planText(p) {
+  const name = p.groups.map(g => g.e.name).join(' + ') || 'Aucune combinaison';
+  const extras = [];
+  if (p.heat) extras.push('Surchauffe ' + p.heat);
+  if (p.heal) extras.push('Réparation +' + p.heal);
+  if (p.s) extras.push('Bouclier +' + p.s);
+  return `${name} → ${p.d} dégâts${extras.length ? ' · ' + extras.join(' · ') : ''}`;
+}
+/* ===== 7. TOUR DE JEU, RÉSOLUTION, IA ==================================== */
+
+/* --- Début de tour --- */
+function startTurn() {
+  if (mpOnlineMode && !mpIsMyTurn()) return;   // en ligne, seul l'appareil du joueur actif démarre le tour
+  if (gameStatsCurrent && !gameStatsCurrent.committed) gameStatsCurrent.turns++;
+  clearHumanTurnTimer();
+  phase = 'rolling';
+  rolls = 0; dice = []; kept = [];
+  target = players.length === 2 ? players.findIndex((p, i) => i !== current && p.alive) : null;
+  render();
+  if (players[current]?.human) {
+    startHumanTurnTimer();
+  } else {
+    const mySession = session;
+    setTimeout(() => { if (mySession === session) aiPlay(); }, 500);
+  }
+  if (mpOnlineMode) setTimeout(() => mpPublishGameSnapshot(true), 120);
+}
+
+/* --- Choix de la combinaison (humain) --- */
+function combine() {
+  if (mpOnlineMode && !mpIsMyTurn()) return;
+  if (comboChoosing || phase !== 'rolling' || rolls < 1 || animating) return;
+  choicePlans = plans(dice);
+  if (players[current].human) openChoiceModal(choicePlans);
+  else resolve(rankPlans(choicePlans, 'attack')[0] || choicePlans[0]);
+}
+
+function openChoiceModal(ps) {
+  const modes = [
+    { id: 'attack', title: '⚔️ Attaque maximale' },
+    { id: 'heal', title: '💚 Vie maximale' },
+    { id: 'defense', title: '🛡️ Défense maximale' }
+  ];
+
+  // Le meilleur plan de chaque stratégie ; si plusieurs stratégies donnent le même plan, une seule carte.
+  const primary = [];
+  const bySignature = new Map();
+  modes.forEach(m => {
+    const best = rankPlans(ps, m.id)[0];
+    if (!best) return;
+    const sig = planSignature(best);
+    if (!bySignature.has(sig)) {
+      const entry = { plan: best, labels: [] };
+      bySignature.set(sig, entry);
+      primary.push(entry);
+    }
+    bySignature.get(sig).labels.push(m.title);
+  });
+
+  const primarySigs = new Set(primary.map(x => planSignature(x.plan)));
+  const seen = new Set();
+  const others = [];
+  ps.forEach(p => {
+    const sig = planSignature(p);
+    if (seen.has(sig)) return;
+    seen.add(sig);
+    if (!primarySigs.has(sig)) others.push(p);
+  });
+
+  const card = (p, label) => `
+    <div class="configCard planCard">
+      <div class="planTitle">${esc(label || 'Autre combinaison')}</div>
+      <div class="planText">${esc(planText(p))}</div>
+      <div class="planStats">
+        <span>Dégâts : <b>${p.d}</b></span><span>Soin : <b>+${p.heal} PV</b></span>
+        <span>Bouclier : <b>+${p.s}</b></span><span>Surchauffe : <b>${p.heat}</b></span>
+      </div>
+      <button class="btn good planChoose" onclick="this.disabled=true;chooseCombo(${ps.indexOf(p)})">Choisir cette combinaison</button>
+    </div>`;
+
+  const othersHtml = others.length
+    ? `<details class="planOthers"><summary class="btn">Voir les autres combinaisons (${others.length})</summary>
+         <div class="planOthersList">${others.map(p => card(p)).join('')}</div></details>`
+    : '<div class="notice mt12">Aucune autre combinaison distincte disponible.</div>';
+
+  openModal(MODAL.CHOICE, `
+    <div class="quick">Les trois stratégies sont évaluées séparément. Si plusieurs stratégies conduisent à la même
+      répartition et aux mêmes effets, une seule carte est affichée. Les autres répartitions restent disponibles ci-dessous.</div>
+    <div class="planGrid">${primary.map(x => card(x.plan, x.labels.join(' / '))).join('')}</div>
+    ${othersHtml}`);
+}
+
+function chooseCombo(index) {
+  if (comboChoosing) return;
+  comboChoosing = true;
+  localActionUntil = Date.now() + 3000;   // ignore brièvement les snapshots distants pendant la résolution
+  closeModal();
+  resolve(choicePlans[index]);
+  setTimeout(() => { comboChoosing = false; }, 900);
+}
+
+/* --- Résolution --- */
+
+/* Point d'entrée : en ligne, seul le joueur actif peut résoudre, puis l'état est publié. */
+function resolve(p) {
+  if (mpOnlineMode && !mpIsMyTurn()) return;
+  resolvePlan(p);
+  if (mpOnlineMode) setTimeout(() => mpPublishGameSnapshot(true), 350);
+}
+
+function resolvePlan(p) {
+  phase = 'resolving';
+  const actor = players[current];
+  if (!actor.human) target = aiTarget(p.d);
+  else if (players.length === 2) target = players.findIndex((x, i) => i !== current && x.alive);
+
+  if (p.d > 0 && target == null) {
+    if (actor.human) { openTargetModal(p); return; }
+    target = aiTarget(p.d);
+  }
+  finishResolve(p);
+}
+
+function finishResolve(p) {
+  if (!players[current]) return;
+  applyResolve(p);
+}
+
+/* Cible éloignée (partie à 4 joueurs ou plus) : distance mesurée sur le cercle des joueurs. */
+function isDistant(targetIdx) {
+  if (players.length < 4) return false;
+  const dist = Math.abs(targetIdx - current);
+  return Math.min(dist, players.length - dist) > 1;
+}
+const damageAfterDistance = (targetIdx, d) => (isDistant(targetIdx) ? Math.max(0, d - cfg.distanceReduction) : d);
+
+function openTargetModal(p) {
+  pendingTargetPlan = p;
+  const rows = players
+    .map((x, i) => ({ p: x, i }))
+    .filter(x => x.i !== current && x.p.alive)
+    .map(({ p: t, i }) => {
+      const distant = isDistant(i);
+      const color = safeColor(t.color);
+      return `<button class="targetChoice" style="border-color:${color}" onclick="chooseTarget(${i})">
+        <div class="targetRow">
+          <div>
+            <div class="targetName" style="color:${color}">${esc(t.name)}</div>
+            <div class="targetMeta">${t.pv} PV · Bouclier ${t.shield}</div>
+            <div class="targetRange ${distant ? 'far' : 'near'}">${distant ? 'CIBLE ÉLOIGNÉE · −' + cfg.distanceReduction + ' dégâts' : 'À PORTÉE'}</div>
+          </div>
+          <div class="targetDamage"><div class="targetMeta">DÉGÂTS SUBIS</div><strong>${damageAfterDistance(i, p.d)}</strong></div>
+        </div>
+      </button>`;
+    }).join('');
+  openModal(MODAL.TARGET, `
+    <div class="quick">Aucune cible n'est sélectionnée. Choisis le vaisseau qui recevra les dégâts.</div>
+    <div class="targetList">${rows}</div>`);
+}
+
+function chooseTarget(i) {
+  if (!pendingTargetPlan) return;
+  if (!players[i] || !players[i].alive) { openTargetModal(pendingTargetPlan); return; }
+  const p = pendingTargetPlan;
+  target = i;
+  pendingTargetPlan = null;
+  closeModal();
+  finishResolve(p);
+}
+
+/* Ordre de résolution : dégâts infligés → dégâts subis (surchauffe) → PV récupérés → boucliers → fin de partie. */
+function applyResolve(p) {
+  clearHumanTurnTimer();
+  recordResolveStats(p);
+
+  const justPlayedIndex = current;
+  const actor = players[current];
+  const hasTarget = p.d > 0 && target != null;
+
+  let summary = `[${dice.join(' - ')}] ${planText(p)}`;
+  if (hasTarget) summary += ` → ${p.d} dégât${p.d > 1 ? 's' : ''} sur ${players[target].name}`;
+  if (p.heat) summary += ` • Surchauffe ${p.heat}`;
+  if (p.heal) summary += ` • +${p.heal} PV`;
+  if (p.s) summary += ` • +${p.s} Bouclier`;
+
+  lastTurnSummary = {
+    name: actor.name,
+    color: actor.color,
+    targetName: hasTarget ? players[target].name : '',
+    damage: target != null ? damageAfterDistance(target, p.d) : (Number(p.d) || 0),
+    heat: Number(p.heat) || 0,
+    heal: Number(p.heal) || 0,
+    shield: (Number(p.s) || 0) > 0 ? Number(p.s) : 0,
+    playedIndex: justPlayedIndex,
+    turnAt: Date.now()
+  };
+  log(`${actor.name} : ${summary}.`);
+
+  applyDamage(target, p.d);
+
+  const me = players[current];
+  if (me.alive && p.heat) {
+    me.pv -= p.heat;
+    log(`${me.name} subit ${p.heat} dégâts de Surchauffe moteur.`);
+    if (me.pv <= 0) {
+      me.pv = 0;
+      me.alive = false;
+      log(`${me.name} est détruit par sa propre Surchauffe.`);
+    }
+  }
+  if (me.alive && p.heal) {
+    me.pv = Math.min(me.max, me.pv + p.heal);
+    log(`${me.name} récupère ${p.heal} PV.`);
+  }
+  if (me.alive && p.s) {
+    const before = me.shield;
+    me.shield = Math.min(cfg.shieldMax, me.shield + p.s);
+    if (me.shield > before) log(`${me.name} obtient un Bouclier.`);
+  }
+
+  if (!fastAIBattle) render();
+
+  const alive = players.filter(x => x.alive);
+  if (alive.length === 1) { endGame(`${alive[0].name} remporte la partie.`); return; }
+  if (alive.length === 0) { endGame('MATCH NUL : aucun vaisseau ne survit.'); return; }
+
+  current = nextAlive(current);
+  target = null;
+  if (!hasLivingHuman() && !gameOver && !fastAIBattle) { runFastAIBattle(); return; }
+  if (fastAIBattle) return;
+  showNextPlayerWindow(justPlayedIndex);
+}
+
+/* Applique les dégâts à la cible. Un bouclier évite la mort : la cible reste à `shieldSavePV` PV. */
+function applyDamage(targetIdx, d) {
+  if (d <= 0 || targetIdx == null) return;
+  const t = players[targetIdx];
+  const final = damageAfterDistance(targetIdx, d);
+  recordDamageStats(final);
+
+  if (t.pv - final <= 0 && t.shield > 0) {
+    t.shield--;
+    t.pv = Math.max(1, cfg.shieldSavePV);
+    log(`${t.name} utilise son Bouclier et reste à ${t.pv} PV.`);
+  } else {
+    t.pv -= final;
+    log(`${players[current].name} inflige ${final} dégâts à ${t.name}.`);
+    if (t.pv <= 0) {
+      t.pv = 0;
+      t.alive = false;
+      log(`${t.name} est détruit.`);
+    }
+  }
+  players[current].lastTarget = targetIdx;
+}
+
+function endGame(message) {
+  clearHumanTurnTimer();
+  clearNextPlayerTimer();
+  commitGameStats();
+  gameOver = true;
+  phase = 'over';
+  log(message);
+  render();
+  openModal(MODAL.END, `<div class="modalCenter big"><h2>${esc(message)}</h2>
+    <button class="btn orange" onclick="closeModal();newGame()">NOUVELLE PARTIE</button></div>`);
+  if (mpOnlineMode) setTimeout(() => mpPublishGameSnapshot(true), 180);
+}
+
+/* --- Intelligence artificielle --- */
+
+/* Cible l'adversaire vivant au hasard pondéré : plus il est blessé (ou achevable), plus il attire l'IA. */
+function aiTarget(dmg) {
+  const candidates = players.map((p, i) => ({ p, i })).filter(x => x.i !== current && x.p.alive);
+  if (!candidates.length) return null;
+  const prev = players[current].lastTarget;
+  const weights = candidates.map(x => {
+    let w = 1 + (x.p.max - x.p.pv) / x.p.max * 2;
+    if (x.p.pv <= dmg) w += 5;
+    if (x.i === prev) w *= .55;
+    return { i: x.i, w };
+  });
+  let r = Math.random() * sum(weights.map(x => x.w));
+  for (const x of weights) {
+    r -= x.w;
+    if (r <= 0) return x.i;
+  }
+  return weights[0].i;
+}
+
+/* L'IA garde exactement les dés utilisés par son meilleur plan et relance les autres. */
+function aiKeepDice(best) {
+  const used = new Set(best.groups.flatMap(g => g.ix));
+  kept = dice.map((_, i) => used.has(i));
+}
+
+function aiPlay() {
+  if (gameOver) return;
+  const mySession = session;
+  doRoll(() => {
+    if (mySession !== session) return;
+    const best = plans(dice)[0];
+    aiKeepDice(best);
+    renderDice();
+    if (rolls < cfg.maxRolls && kept.filter(Boolean).length < DICE_COUNT) {
+      setTimeout(() => { if (mySession === session) aiPlay(); }, 1000);
+    } else {
+      setTimeout(() => { if (mySession === session) resolve(best); }, 500);
+    }
+  });
+}
+
+/* Quand il ne reste que des IA, la partie est simulée instantanément (utile pour les statistiques). */
+function runFastAIBattle() {
+  if (gameOver || hasLivingHuman()) return;
+  fastAIBattle = true;
+  phase = 'resolving';
+  animating = false;
+
+  let turns = 0;
+  while (!gameOver && !hasLivingHuman() && aliveCount() > 1 && turns++ < FAST_BATTLE_MAX_TURNS) {
+    if (gameStatsCurrent && !gameStatsCurrent.committed) gameStatsCurrent.turns++;
+    rolls = 0; dice = []; kept = [];
+    let best = null;
+    for (let r = 0; r < cfg.maxRolls; r++) {
+      for (let i = 0; i < DICE_COUNT; i++) if (!kept[i]) dice[i] = rollDie();
+      rolls++;
+      if (gameStatsCurrent && !gameStatsCurrent.committed) gameStatsCurrent.rolls++;
+      best = plans(dice)[0];
+      aiKeepDice(best);
+      if (kept.filter(Boolean).length >= DICE_COUNT) break;
+    }
+    if (!best) break;
+    target = aiTarget(best.d);
+    applyResolve(best);
+  }
+
+  fastAIBattle = false;
+  animating = false;
+  if (!gameOver && aliveCount() > 1) {   // garde-fou : partie bloquée
+    endGame('MATCH NUL : la partie a été interrompue (trop de tours sans vainqueur).');
+    return;
+  }
+  render();
+  if (!gameOver) {
+    const alive = players.filter(p => p.alive);
+    if (alive.length === 1) endGame(`${alive[0].name} remporte la partie.`);
+    else if (alive.length === 0) endGame('MATCH NUL : aucun vaisseau ne survit.');
+  }
+}
+/* ===== 8. MINUTEURS : TOUR HUMAIN (60 s) ET PASSAGE AU JOUEUR SUIVANT (10 s) ==== */
+
+let humanTurnTimer = null, humanTurnDisplayInterval = null, humanTurnDeadline = 0, humanTurnToken = 0;
+let nextPlayerTimer = null, nextPlayerInterval = null, nextPlayerToken = 0;
+
+function clearHumanTurnTimer() {
+  if (humanTurnTimer) { clearTimeout(humanTurnTimer); humanTurnTimer = null; }
+  if (humanTurnDisplayInterval) { clearInterval(humanTurnDisplayInterval); humanTurnDisplayInterval = null; }
+  const display = $('humanTimerDisplay');
+  if (display) {
+    display.style.display = 'none';
+    display.textContent = 'TEMPS RESTANT : 60 s';
+    display.style.color = '#55d8ff';
+  }
+  humanTurnDeadline = 0;
+  humanTurnToken++;
+}
+
+/* Sur un appareil qui observe le tour d'un autre joueur : plus de minuteur local à faire tourner. */
+function stopObserverTimer() {
+  if (humanTurnTimer) clearHumanTurnTimer();
+  else if (humanTurnDisplayInterval) { clearInterval(humanTurnDisplayInterval); humanTurnDisplayInterval = null; }
+}
+
+function updateHumanTurnCountdown() {
+  const display = $('humanTimerDisplay');
+  if (!display) return;
+  if (gameOver || !players[current]?.human || !humanTurnDeadline) { display.style.display = 'none'; return; }
+  const remaining = Math.max(0, Math.ceil((humanTurnDeadline - Date.now()) / 1000));
+  display.style.display = 'block';
+  display.textContent = `TEMPS RESTANT : ${remaining} s`;
+  display.style.color = remaining <= 10 ? '#ff5266' : '#55d8ff';
+}
+
+function startHumanTurnTimer() {
+  clearHumanTurnTimer();
+  const token = humanTurnToken;
+  humanTurnDeadline = Date.now() + HUMAN_TURN_MS;
+  updateHumanTurnCountdown();
+  humanTurnDisplayInterval = setInterval(updateHumanTurnCountdown, 250);
+  humanTurnTimer = setTimeout(() => handleHumanTurnTimeout(token), HUMAN_TURN_MS);
+}
+
+function handleHumanTurnTimeout(token) {
+  if (token !== humanTurnToken || gameOver || !players[current]?.human) return;
+  // Un lancer est en cours d'animation : on attend qu'il affiche son résultat final.
+  if (animating) { humanTurnTimer = setTimeout(() => handleHumanTurnTimeout(token), 150); return; }
+  humanTurnTimer = null;
+  if (humanTurnDisplayInterval) { clearInterval(humanTurnDisplayInterval); humanTurnDisplayInterval = null; }
+  const display = $('humanTimerDisplay');
+  if (display) display.style.display = 'none';
+  expireCurrentTurn(resolve, false);
+}
+
+/* Meilleur plan « de secours » : surchauffe minimale, puis soin maximal. */
+function pickExpiredPlan() {
+  let available = (phase === 'rolling' && dice.length) ? plans(dice) : choicePlans;
+  if (!available || !available.length) available = plans(dice);
+  if (!available || !available.length) return null;
+  return available.slice().sort((a, b) => (a.heat || 0) - (b.heat || 0) || (b.heal || 0) - (a.heal || 0))[0];
+}
+
+/* Passe le tour du joueur actif sans effet. */
+function skipCurrentTurn() {
+  const skipped = current;
+  current = nextAlive(current);
+  target = null; dice = []; kept = []; rolls = 0;
+  lastTurnSummary = null;
+  if (aliveCount() <= 1) {
+    const winner = players.find(p => p.alive);
+    endGame(winner ? `${winner.name} remporte la partie.` : 'MATCH NUL : aucun vaisseau ne survit.');
+    return;
+  }
+  showNextPlayerWindow(skipped);
+}
+
+/* Le délai de 60 s est écoulé pour le joueur actif.
+   - aucun lancer : le tour est passé ;
+   - sinon : résolution automatique, l'attaque est perdue (d = 0).
+   `resolver` vaut resolve (appareil du joueur) ou resolvePlan (appareil qui prend le relais). */
+function expireCurrentTurn(resolver, remote) {
+  const actor = players[current];
+  if (rolls === 0) {
+    log(remote
+      ? `${actor.name} n’a lancé aucun dé en 60 secondes : tour passé automatiquement.`
+      : `${actor.name} n’a lancé aucun dé en 60 secondes : tour passé sans effet.`);
+    skipCurrentTurn();
+    return;
+  }
+  const best = pickExpiredPlan();
+  if (!best) { skipCurrentTurn(); return; }
+  hideModal();
+  pendingTargetPlan = null;
+  target = null;
+  log(remote
+    ? `${actor.name} : délai écoulé pendant que son appareil était inactif ; résolution automatique (surchauffe minimale, puis soin maximal, attaque perdue).`
+    : `${actor.name} : délai de 60 secondes écoulé, résolution automatique (surchauffe minimale, puis soin maximal ; attaque perdue).`);
+  resolver({ ...best, d: 0 });
+}
+
+/* ----- Passage au joueur suivant ----- */
+
+function clearNextPlayerTimer() {
+  if (nextPlayerTimer) { clearTimeout(nextPlayerTimer); nextPlayerTimer = null; }
+  if (nextPlayerInterval) { clearInterval(nextPlayerInterval); nextPlayerInterval = null; }
+  nextPlayerToken++;
+}
+
+/* Résumé du tour qui vient d'être joué (null si le joueur n'a rien résolu, ex. tour passé). */
+const summaryFor = playedIndex =>
+  (lastTurnSummary && lastTurnSummary.playedIndex === playedIndex ? lastTurnSummary : null);
+
+function turnSummaryHtml(summary) {
+  if (!summary) return '<div class="turnSummaryEmpty">Aucune action résolue pendant ce tour.</div>';
+  return `<div class="turnSummary">
+    <div class="turnSummaryName" style="color:${safeColor(summary.color)}">${esc(summary.name || 'JOUEUR')}</div>
+    <div class="turnSummaryGrid">
+      ${summary.targetName ? `<span>Cible</span><b>${esc(summary.targetName)}</b>` : ''}
+      <span>Dégâts faits</span><b class="dmg">${Number(summary.damage ?? 0)}</b>
+      <span>Dégâts de surchauffe</span><b class="dmg">${Number(summary.heat ?? 0)}</b>
+      <span>Bouclier reçu</span><b class="shieldVal">${Number(summary.shield ?? 0)}</b>
+      <span>Heal reçu</span><b class="healVal">+${Number(summary.heal ?? 0)} PV</b>
+    </div>
+  </div>`;
+}
+
+function showNextPlayerWindow(justPlayedIndex) {
+  clearHumanTurnTimer();
+  clearNextPlayerTimer();
+  if (gameOver) return;
+
+  // En ligne : chaque joueur confirme le passage (voir « Multijoueur »). Le tour suivant ne démarre
+  // qu'après toutes les confirmations ou à l'expiration du délai.
+  if (mpOnlineMode) {
+    mpHandoff = {
+      playedIndex: justPlayedIndex, nextIndex: current, startedAt: Date.now(),
+      acks: [], summary: summaryFor(justPlayedIndex)
+    };
+    phase = 'handoff'; rolls = 0; dice = []; kept = [];
+    render();
+    mpShowHandoffModal();
+    setTimeout(() => mpPublishGameSnapshot(true), 120);
+    return;
+  }
+
+  // En local : on ne s'arrête que s'il y a un autre humain à qui passer l'appareil.
+  const waiting = players.some((p, i) => p.alive && p.human && i !== justPlayedIndex);
+  if (!waiting) { startTurn(); return; }
+
+  const token = nextPlayerToken;
+  let remaining = HANDOFF_MS / 1000;
+  openModal(MODAL.NEXT, `<div class="modalCenter">
+    ${turnSummaryHtml(summaryFor(justPlayedIndex))}
+    <div class="handoffHint">Passez le téléphone au joueur suivant.</div>
+    <div class="handoffLabel">Passage automatique dans</div>
+    <div id="next-countdown" class="countdown">${remaining} s</div>
+    <button class="btn good handoffBtn" onclick="finishNextPlayerWindow(${token})">▶ JOUEUR SUIVANT</button>
+  </div>`, null, true);
+
+  nextPlayerInterval = setInterval(() => {
+    if (token !== nextPlayerToken) return;
+    remaining = Math.max(0, remaining - 1);
+    const el = $('next-countdown');
+    if (el) el.textContent = `${remaining} s`;
+  }, 1000);
+  nextPlayerTimer = setTimeout(() => finishNextPlayerWindow(token), HANDOFF_MS);
+}
+
+function finishNextPlayerWindow(token) {
+  if (token !== nextPlayerToken || gameOver) return;
+  clearNextPlayerTimer();
+  hideModal();
+  startTurn();
+}
+/* ===== 9. AFFICHAGE ET PRÉPARATION DE LA PARTIE ========================== */
+
+function statusText() {
+  if (gameOver) return '';
+  const p = players[current];
+  if (!p?.human) return 'Tour de l’IA…';
+  if (rolls >= cfg.maxRolls) return 'Dernier lancer : choisis ta combinaison.';
+  return 'Garde les dés souhaités puis combine-les.';
+}
+
+function renderPlayers() {
+  $('players').innerHTML = players.map((p, i) => {
+    const pct = Math.max(0, Math.min(100, p.pv / p.max * 100));
+    return `<div class="player${i === current ? ' active' : ''}${!p.alive ? ' dead' : ''}" style="--c:${safeColor(p.color)}">
+      <div class="pname"><span>${esc(p.name)}</span><span class="role">${p.human ? 'Joueur' : 'IA'}</span></div>
+      <div class="bar"><div class="hp" style="width:${pct}%"></div></div>
+      <div class="pmeta"><span>${p.pv}/${p.max} PV</span><span class="shield">Bouclier ${p.shield}</span></div>
+    </div>`;
+  }).join('');
+}
+
+/* Garde la cible cohérente : à 2 joueurs c'est toujours l'adversaire ; une cible morte est effacée. */
+function sanitizeTarget() {
+  if (target != null && (!players[target] || !players[target].alive || target === current)) target = null;
+  if (players.length === 2 && players[current]) target = players.findIndex((p, i) => i !== current && p.alive);
+}
+
+function render() {
+  renderPlayers();
+  $('turn').textContent = players.length
+    ? `TOUR DE ${players[current].name.toUpperCase()} • LANCER ${rolls}/${cfg.maxRolls}` : '';
+  $('status').textContent = statusText();
+  renderDice();
+  sanitizeTarget();
+
+  const canAct = !gameOver && players[current]?.human && phase === 'rolling';
+  $('rollBtn').disabled = !canAct || animating || rolls >= cfg.maxRolls;
+  $('combineBtn').disabled = !canAct || rolls < 1 || animating;
+  $('soundBtn').textContent = 'SON : ' + (sound ? 'ON' : 'OFF');
+  updateHumanTurnCountdown();
+
+  // En ligne : l'état est publié depuis l'appareil actif ; les autres joueurs observent.
+  if (mpOnlineMode) {
+    mpScheduleGameSync();
+    if (!mpIsMyTurn()) {
+      $('rollBtn').disabled = true;
+      $('combineBtn').disabled = true;
+      $('status').textContent = 'Tour de ' + (players[current]?.name || 'l’autre joueur') + ' — en attente de son action.';
+    }
+  }
+}
+
+/* Tableau « Récapitulatif des combinaisons » (valeurs lues dans la configuration). */
+function renderRecap() {
+  const rows = [
+    ['Paire', [4, 4], cfg.pair, 0],
+    ['Brelan', [3, 3, 3], cfg.triplet, 0],
+    ['Carré', [5, 5, 5, 5], cfg.quad, 0],
+    ['Quinte', [6, 6, 6, 6, 6], cfg.quint, 0],
+    ['Sextuplé', [2, 2, 2, 2, 2, 2], cfg.sext, 0],
+    ['3 Paires', [1, 1, 3, 3, 5, 5], 0, cfg.threePairsShield],
+    ['Full Royal', [4, 4, 4, 2, 2, 6], cfg.fullRoyal, 0],
+    ['2 Brelans', [2, 2, 2, 5, 5, 5], cfg.twoTriplets, 0],
+    ['Micro-suite', [1, 2, 3], cfg.micro, 0],
+    ['Petite Suite', [1, 2, 3, 4], cfg.smallStraight, 0],
+    ['Grande Suite', [1, 2, 3, 4, 5], cfg.largeStraight, 0],
+    ['Suite Totale', [1, 2, 3, 4, 5, 6], cfg.totalStraight, cfg.totalStraightShield]
+  ];
+  const miniDice = values => values.map(x =>
+    `<span class="mini symbol${x}" title="Valeur ${x}">${faceSVG(x)}<small>${x}</small></span>`).join('');
+  $('recap').innerHTML = rows.map(([name, example, dmg, shield]) =>
+    `<tr><td>${name}</td><td><span class="diceMini">${miniDice(example)}</span></td><td>${dmg}</td><td>${shield}</td></tr>`
+  ).join('');
+}
+
+/* ----- Écran de préparation (hors connexion) ----- */
+
+const defaultPlayerName = i => (i === 0 ? 'Vous' : AI_NAMES[i - 1] || `Pilote ${i + 1}`);
+
+/* Première couleur de la palette qui n'est pas déjà prise. */
+function freeColor(list) {
+  const used = new Set(list.map(p => p.color));
+  return PALETTE.find(c => !used.has(c)) || PALETTE[list.length % PALETTE.length];
+}
+
+function renderSetup() {
+  if (!setupData.length) {
+    for (let i = 0; i < 4; i++) setupData.push({ name: defaultPlayerName(i), human: i === 0, color: PALETTE[i] });
+  }
+  const n = setupData.length;
+  const options = [2, 3, 4, 5, 6].map(k => `<option value="${k}"${n === k ? ' selected' : ''}>${k} joueurs</option>`).join('');
+  const rows = setupData.map((p, i) => `
+    <div class="setupRow">
+      <input id="nm${i}" class="nameInput" maxlength="24" value="${esc(p.name)}" aria-label="Nom du joueur ${i + 1}"
+             oninput="setupData[${i}].name=this.value">
+      <select id="type${i}" aria-label="Type du joueur ${i + 1}" onchange="setupData[${i}].human=this.value==='human'">
+        <option value="human"${p.human ? ' selected' : ''}>Humain</option>
+        <option value="ai"${!p.human ? ' selected' : ''}>IA</option>
+      </select>
+      <button class="colorBtn" style="background:${safeColor(p.color)}" aria-label="Couleur du joueur ${i + 1}"
+              onclick="openColor(${i},this)"></button>
+    </div>`).join('');
+
+  $('setupPlayers').innerHTML = `
+    <div class="configCard playerCount"><div class="row">
+      <label>Nombre de joueurs</label>
+      <select id="playerCount" onchange="setPlayerCount(+this.value)">${options}</select>
+    </div></div>${rows}`;
+}
+
+function setPlayerCount(n) {
+  n = Math.max(MIN_PLAYERS, Math.min(MAX_PLAYERS, n));
+  while (setupData.length < n) {
+    const i = setupData.length;
+    setupData.push({ name: defaultPlayerName(i), human: i === 0, color: freeColor(setupData) });
+  }
+  while (setupData.length > n) setupData.pop();
+  renderSetup();   // les noms saisis sont déjà dans setupData (oninput) : rien n'est perdu
+}
+
+function closeColorPop() { document.querySelectorAll('.colorPop').forEach(x => x.remove()); }
+
+function openColor(i, anchor) {
+  closeColorPop();
+  const pop = document.createElement('div');
+  pop.className = 'colorPop';
+  const r = anchor.getBoundingClientRect();
+  pop.style.left = Math.max(4, Math.min(innerWidth - 190, r.left)) + 'px';
+  pop.style.top = Math.min(innerHeight - 55, r.bottom + 5) + 'px';
+  PALETTE.forEach(c => {
+    const used = setupData.some((p, k) => k !== i && p.color === c);
+    const b = document.createElement('button');
+    b.className = 'colorOpt' + (used ? ' used' : '');
+    b.style.background = c;
+    b.disabled = used;
+    b.setAttribute('aria-label', 'Couleur ' + c);
+    b.onclick = () => { setupData[i].color = c; closeColorPop(); renderSetup(); };
+    pop.appendChild(b);
+  });
+  document.body.appendChild(pop);
+}
+
+/* Lit le formulaire de préparation puis lance la partie. */
+function startConfiguredGame() {
+  setupData.forEach((p, i) => {
+    p.name = ($('nm' + i)?.value ?? p.name).trim() || `Pilote ${i + 1}`;
+    p.human = ($('type' + i)?.value ?? (p.human ? 'human' : 'ai')) === 'human';
+  });
+  startGame(setupData);
+}
+
+/* Crée les joueurs et lance le premier tour (hors connexion comme en ligne). */
+function startGame(setup) {
+  newSession();
+  clearHumanTurnTimer();
+  clearNextPlayerTimer();
+  const n = setup.length;
+  startGameStats(n);
+
+  players = setup.map(p => ({
+    name: p.name, human: p.human, color: p.color,
+    pv: cfg.playersPV[n], max: cfg.playersPV[n], shield: 0, alive: true, lastTarget: null
+  }));
+  current = 0;
+  gameOver = false;
+  phase = 'rolling';
+  logs = [];
+  target = null;
+  dice = []; kept = []; rolls = 0;
+  animating = false; fastAIBattle = false; pendingTargetPlan = null;
+  lastTurnSummary = null;
+
+  showPage('game');
+  log(`Nouvelle partie : ${n} joueurs — ${cfg.playersPV[n]} PV.`);
+  renderRecap();
+  startTurn();
+}
+/* ===== 10. STATISTIQUES DE TEST ET ADMINISTRATION =========================
+   Ces écrans sont conservés mais masqués dans l'interface publique. On les ouvre
+   depuis la console du navigateur : openAdmin(), openStats(), openStatsReader().   */
+
+const STATS_PLAYER_COUNTS = [2, 3, 4, 5, 6];
+const STATS_COUNTERS = ['games', 'turns', 'damage', 'heat', 'healing', 'shields', 'rolls'];
+
+const emptyStatBucket = () => ({ games: 0, turns: 0, damage: 0, heat: 0, healing: 0, shields: 0, rolls: 0 });
+function emptyStats() {
+  const byPlayers = {};
+  STATS_PLAYER_COUNTS.forEach(n => { byPlayers[n] = emptyStatBucket(); });
+  return { version: BUILD_VERSION, byPlayers };
+}
+
+function loadStats() {
+  try {
+    const saved = JSON.parse(store.get(STORAGE_KEYS.stats, 'null'));
+    if (!saved) return emptyStats();
+    const stats = emptyStats();
+    STATS_PLAYER_COUNTS.forEach(n => { stats.byPlayers[n] = Object.assign(emptyStatBucket(), saved.byPlayers?.[n] || {}); });
+    return stats;
+  } catch (e) {
+    return emptyStats();
+  }
+}
+
+let statsData = loadStats();
+let gameStatsCurrent = null;   // compteurs de la partie en cours (enregistrés à la fin de partie)
+
+const saveStats = () => store.set(STORAGE_KEYS.stats, JSON.stringify(statsData));
+function clearStats() { statsData = emptyStats(); saveStats(); }
+
+function startGameStats(playerCount) {
+  gameStatsCurrent = { players: playerCount, turns: 0, damage: 0, heat: 0, healing: 0, shields: 0, rolls: 0, committed: false };
+}
+
+function commitGameStats() {
+  const st = gameStatsCurrent;
+  if (!st || st.committed) return;
+  const bucket = statsData.byPlayers[st.players] || emptyStatBucket();
+  bucket.games++;
+  ['turns', 'damage', 'heat', 'healing', 'shields', 'rolls'].forEach(k => { bucket[k] += st[k]; });
+  statsData.byPlayers[st.players] = bucket;
+  st.committed = true;
+  saveStats();
+}
+
+const statsActive = () => gameStatsCurrent && !gameStatsCurrent.committed;
+
+function recordDamageStats(finalDamage) {
+  if (statsActive()) gameStatsCurrent.damage += finalDamage;
+}
+
+/* Appelé avant la résolution : soin et bouclier réellement obtenus (plafonnés), surchauffe subie. */
+function recordResolveStats(p) {
+  if (!statsActive()) return;
+  const me = players[current];
+  if (!me) return;
+  const heat = p.heat || 0;
+  const pvAfterHeat = me.pv - heat;
+  gameStatsCurrent.heat += heat;
+  if (pvAfterHeat > 0) {
+    gameStatsCurrent.healing += Math.max(0, Math.min(p.heal || 0, me.max - pvAfterHeat));
+    gameStatsCurrent.shields += Math.max(0, Math.min(p.s || 0, cfg.shieldMax - me.shield));
+  }
+}
+
+const fmt = (v, d = 2) => (Number.isFinite(v) ? v.toFixed(d).replace('.', ',') : '0,00');
+
+function statLine(b) {
+  if (!b.games) {
+    return { games: 0, turns: 0, damageTurn: 0, damageGame: 0, heatTurn: 0, heatGame: 0, healTurn: 0, healGame: 0, shieldTurn: 0, shieldGame: 0, rollTurn: 0 };
+  }
+  const perTurn = v => (b.turns ? v / b.turns : 0);
+  return {
+    games: b.games, turns: b.turns / b.games,
+    damageTurn: perTurn(b.damage), damageGame: b.damage / b.games,
+    heatTurn: perTurn(b.heat), heatGame: b.heat / b.games,
+    healTurn: perTurn(b.healing), healGame: b.healing / b.games,
+    shieldTurn: perTurn(b.shields), shieldGame: b.shields / b.games,
+    rollTurn: perTurn(b.rolls)
+  };
+}
+
+const STATS_HEADERS = ['Configuration', 'Parties', 'Tours/partie', 'Dégâts/tour', 'Dégâts/partie', 'Surchauffe/tour',
+  'Surchauffe/partie', 'PV/tour', 'PV/partie', 'Boucliers/tour', 'Boucliers/partie', 'Lancers/tour'];
+
+function statsTableHtml(byPlayers) {
+  const rows = STATS_PLAYER_COUNTS.map(n => {
+    const x = statLine(byPlayers[n]);
+    const cells = [x.games, fmt(x.turns), fmt(x.damageTurn), fmt(x.damageGame), fmt(x.heatTurn), fmt(x.heatGame),
+      fmt(x.healTurn), fmt(x.healGame), fmt(x.shieldTurn), fmt(x.shieldGame), fmt(x.rollTurn)];
+    return `<tr><td><b>${n} joueurs</b></td>${cells.map(c => `<td>${c}</td>`).join('')}</tr>`;
+  }).join('');
+  return `<div class="scrollX"><table class="table"><thead><tr>${STATS_HEADERS.map(h => `<th>${h}</th>`).join('')}</tr></thead>
+    <tbody>${rows}</tbody></table></div>`;
+}
+
+const STATS_MAIL = 'spacedicebattle@gmail.com';
+
+function openStats() {
+  openModal('STATISTIQUES — ' + BUILD_VERSION, `
+    <div class="notice">Les statistiques sont cumulées par configuration de 2 à 6 joueurs.</div>
+    ${statsTableHtml(statsData.byPlayers)}
+    <div class="statsActions">
+      <button class="btn primary" onclick="sendStats()">ENVOYER MES STATISTIQUES</button>
+      <button class="btn" onclick="downloadStats()">TÉLÉCHARGER</button>
+      <span>Vous pouvez télécharger et envoyer les statistiques sur l'adresse mail : <b>${STATS_MAIL}</b></span>
+    </div>`);
+}
+
+/* ----- Lecteur de statistiques (import de fichiers JSON reçus par mail) ----- */
+
+let statsReaderData = Object.create(null);
+
+function openStatsReader() {
+  openModal('LECTEUR DE STATISTIQUES', `
+    <div class="notice">Importez un ou plusieurs fichiers JSON reçus par mail. Le lecteur regroupe les résultats par version et calcule automatiquement le cumul global.</div>
+    <div class="statsActions">
+      <input id="statsReaderFiles" type="file" accept=".json,application/json" multiple>
+      <button class="btn primary" onclick="readStatsFiles()">IMPORTER LES STATISTIQUES</button>
+    </div>
+    <div id="statsReaderResult"><div class="faint">Aucun fichier importé.</div></div>`);
+}
+
+function mergeReaderBucket(a, b) {
+  const out = Object.assign(emptyStatBucket(), a || {});
+  STATS_COUNTERS.forEach(k => { out[k] += Number(b?.[k]) || 0; });
+  return out;
+}
+
+function normalizeReaderPayload(x) {
+  if (!x || !x.byPlayers) return null;
+  const byPlayers = {};
+  STATS_PLAYER_COUNTS.forEach(n => { byPlayers[n] = Object.assign(emptyStatBucket(), x.byPlayers[n] || {}); });
+  return { version: String(x.version || 'INCONNUE'), byPlayers };
+}
+
+function aggregateReader() {
+  const all = {};
+  for (const pack of Object.values(statsReaderData)) {
+    STATS_PLAYER_COUNTS.forEach(n => { all[n] = mergeReaderBucket(all[n], pack.byPlayers[n]); });
+  }
+  STATS_PLAYER_COUNTS.forEach(n => { all[n] = all[n] || emptyStatBucket(); });
+  return all;
+}
+
+function renderStatsReader(selected = 'ALL') {
+  const versions = Object.keys(statsReaderData).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+  const byPlayers = selected === 'ALL' ? aggregateReader() : (statsReaderData[selected]?.byPlayers || emptyStats().byPlayers);
+  const options = versions.map(v => `<option value="${esc(v)}"${selected === v ? ' selected' : ''}>${esc(v)}</option>`).join('');
+  $('statsReaderResult').innerHTML = `
+    <div class="statsActions">
+      <label class="faint">VERSION ÉTUDIÉE</label>
+      <select id="statsReaderVersion" onchange="renderStatsReader(this.value)">
+        <option value="ALL"${selected === 'ALL' ? ' selected' : ''}>TOUTES LES VERSIONS — CUMUL GLOBAL</option>${options}
+      </select>
+      <span class="faint">${versions.length} version(s) importée(s)</span>
+    </div>${statsTableHtml(byPlayers)}`;
+}
+
+async function readStatsFiles() {
+  const input = $('statsReaderFiles');
+  if (!input?.files?.length) { alert('Sélectionnez au moins un fichier JSON de statistiques.'); return; }
+  let ok = 0, bad = 0;
+  for (const file of input.files) {
+    try {
+      const payload = normalizeReaderPayload(JSON.parse(await file.text()));
+      if (!payload) { bad++; continue; }
+      const existing = statsReaderData[payload.version];
+      if (!existing) statsReaderData[payload.version] = payload;
+      else STATS_PLAYER_COUNTS.forEach(n => { existing.byPlayers[n] = mergeReaderBucket(existing.byPlayers[n], payload.byPlayers[n]); });
+      ok++;
+    } catch (e) { bad++; }
+  }
+  renderStatsReader();
+  alert(`${ok} fichier(s) importé(s).${bad ? ` ${bad} fichier(s) ignoré(s).` : ''}`);
+}
+
+/* ----- Envoi / téléchargement ----- */
+
+const statsPayload = () => ({ app: APP_NAME, version: BUILD_VERSION, exportedAt: new Date().toISOString(), byPlayers: statsData.byPlayers });
+const statsFile = () => new File([JSON.stringify(statsPayload(), null, 2)], `SpaceDiceBattle_Stats_${BUILD_VERSION}.json`, { type: 'application/json' });
+
+function sendStats() {
+  const p = statsPayload();
+  const lines = [
+    'Space Dice Battle — Statistiques ' + p.version,
+    '',
+    'Statistiques cumulées par configuration de 2 à 6 joueurs.',
+    '',
+    ...STATS_PLAYER_COUNTS.map(n => {
+      const x = statLine(p.byPlayers[n]);
+      return `${n} joueurs : ${x.games} partie(s) | ${fmt(x.turns)} tours/partie | ${fmt(x.damageTurn)} dégâts/tour | ${fmt(x.damageGame)} dégâts/partie | ` +
+        `${fmt(x.heatTurn)} surchauffe/tour | ${fmt(x.heatGame)} surchauffe/partie | ${fmt(x.healTurn)} PV/tour | ${fmt(x.healGame)} PV/partie | ` +
+        `${fmt(x.shieldTurn)} boucliers/tour | ${fmt(x.shieldGame)} boucliers/partie | ${fmt(x.rollTurn)} lancers/tour`;
+    }),
+    '',
+    'DONNÉES JSON :',
+    JSON.stringify(p, null, 2)
+  ];
+  const subject = encodeURIComponent('Space Dice Battle — Statistiques ' + p.version);
+  window.location.href = `mailto:${STATS_MAIL}?subject=${subject}&body=${encodeURIComponent(lines.join('\n'))}`;
+}
+
+function downloadBlob(file) {
+  const url = URL.createObjectURL(file);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = file.name || 'SpaceDiceBattle_Stats.json';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+const downloadStats = () => downloadBlob(statsFile());
+
+/* ----- Administration : équilibrage du moteur ----- */
+
+const cleanVersion = v => String(v || '').replace(/[^\w .-]/g, '').trim().slice(0, 30);
+
+function openAdmin() {
+  const comboDamage = [
+    ['pair', 'Paire', '2 dés identiques'], ['triplet', 'Brelan', '3 dés identiques'], ['quad', 'Carré', '4 dés identiques'],
+    ['quint', 'Quinte', '5 dés identiques'], ['sext', 'Sextuplé', '6 dés identiques'],
+    ['fullRoyal', 'Full Royal', '4 + 2 + 1 dés identiques'], ['twoTriplets', '2 Brelans', '2 groupes de 3 identiques'],
+    ['micro', 'Micro-suite', 'Suite de 3 dés'], ['smallStraight', 'Petite Suite', 'Suite de 4 dés'],
+    ['largeStraight', 'Grande Suite', 'Suite de 5 dés'], ['totalStraight', 'Suite Totale', '1-2-3-4-5-6']
+  ];
+  const comboShield = [
+    ['threePairsShield', '3 Paires', '3 paires différentes'], ['totalStraightShield', 'Suite Totale', '1-2-3-4-5-6']
+  ];
+  const field = (id, label, value, help = '') => `
+    <div class="adminValue">
+      <div><strong>${label}</strong>${help ? `<small>${help}</small>` : ''}</div>
+      <input id="cfg_${id}" type="number" min="0" step="1" value="${value}">
+    </div>`;
+  const fields = list => list.map(x => field(x[0], x[1], cfg[x[0]], x[2])).join('');
+  const block = (title, tag, content) => `
+    <div class="adminBlock">
+      <div class="adminBlockHead"><b>${title}</b><span>${tag}</span></div>
+      <div class="adminBlockBody">${content}</div>
+    </div>`;
+  const startPV = [2, 3, 4, 5, 6].map(n => field('pv' + n, `${n} joueurs`, cfg.playersPV[n], 'PV de départ')).join('');
+
+  openModal('ADMINISTRATION / ÉQUILIBRAGE', `
+    <div class="adminIntro">Cette page contrôle directement l'équilibrage de Space Dice Battle. Modifie les valeurs, enregistre-les pour cet appareil puis génère un nouveau fichier HTML lorsque tu veux distribuer une version de test.</div>
+    ${block('⚙️ RÈGLES GÉNÉRALES', 'PARAMÈTRES DU MOTEUR', `<div class="adminValues">
+      ${field('maxRolls', 'Lancers maximum', cfg.maxRolls, 'Nombre total de lancers par tour')}
+      ${field('healPerOne', 'Soin par 1', cfg.healPerOne, 'PV récupérés par dé utilisé en soin')}
+      ${field('distanceReduction', 'Réduction à distance', cfg.distanceReduction, 'Dégâts retirés à une cible éloignée')}
+      ${field('shieldMax', 'Boucliers maximum', cfg.shieldMax, 'Stock maximum par joueur')}
+      ${field('shieldSavePV', 'PV sauvés par bouclier', cfg.shieldSavePV, 'PV minimum après activation')}
+    </div>`)}
+    ${block('❤️ PV DE DÉPART', 'SELON LE NOMBRE DE JOUEURS', `<div class="adminValues">${startPV}</div>`)}
+    ${block('💥 COMBINAISONS — DÉGÂTS', 'VALEUR EN DÉGÂTS', `<div class="adminValues">${fields(comboDamage)}</div>`)}
+    ${block('🛡️ COMBINAISONS — BOUCLIERS', 'VALEUR EN BOUCLIERS', `<div class="adminValues">${fields(comboShield)}</div>`)}
+    ${block('🧪 VERSION DE TEST', 'STATISTIQUES SÉPARÉES', `<div class="adminVersion">
+      <div><strong>Version à distribuer</strong><small>Exemple : TEST-01 → TEST-02 après une modification d'équilibrage.</small></div>
+      <input id="cfg_version" type="text" value="${esc(distributionVersion)}" maxlength="30">
+    </div>`)}
+    <div class="adminActions">
+      <button class="btn" onclick="resetAdmin()">RÉINITIALISER</button>
+      <button class="btn good" onclick="saveAdmin()">✓ ENREGISTRER</button>
+      <button class="btn primary" onclick="exportBuildHTML()">📦 GÉNÉRER LE HTML TEST</button>
+    </div>`);
+}
+
+/* Lit un champ numérique de l'administration : entier, borné par `min`, sinon valeur actuelle. */
+function readAdminInt(id, current, min = 0) {
+  const el = $('cfg_' + id);
+  if (!el) return current;
+  const v = Math.round(Number(el.value));
+  return Number.isFinite(v) ? Math.max(min, v) : current;
+}
+
+function saveAdmin() {
+  Object.keys(defaults).filter(k => k !== 'playersPV').forEach(k => {
+    cfg[k] = readAdminInt(k, cfg[k], k === 'maxRolls' ? 1 : 0);   // au moins un lancer par tour
+  });
+  [2, 3, 4, 5, 6].forEach(n => { cfg.playersPV[n] = readAdminInt('pv' + n, cfg.playersPV[n], 1); });
+  const version = cleanVersion($('cfg_version')?.value);
+  if (version) distributionVersion = version;
+  store.set(STORAGE_KEYS.version, distributionVersion);
+  store.set(STORAGE_KEYS.cfg, JSON.stringify(cfg));
+  renderRecap();
+  closeModal();
+  alert('Valeurs enregistrées sur cet appareil.');
+}
+
+function resetAdmin() {
+  cfg = cloneDefaults();
+  store.remove(STORAGE_KEYS.cfg);
+  openAdmin();
+  renderRecap();
+}
+
+/* Génère un fichier HTML autonome dont les valeurs par défaut sont celles de l'administration. */
+function exportBuildHTML() {
+  const typed = cleanVersion($('cfg_version')?.value);
+  if (typed) distributionVersion = typed;
+  if (!confirm('Générer un nouveau fichier HTML avec les valeurs actuelles intégrées dans le code ?')) return;
+
+  // On part d'une copie « propre » de la page : pas de partie en cours, pas de fenêtre ouverte.
+  const clone = document.documentElement.cloneNode(true);
+  clone.querySelectorAll('.colorPop').forEach(x => x.remove());
+  ['players', 'recap', 'tray', 'setupPlayers', 'modalBody', 'mpLobby', 'turn', 'status'].forEach(id => {
+    const el = clone.querySelector('#' + id);
+    if (el) el.innerHTML = '';
+  });
+  PAGES.forEach(id => clone.querySelector('#' + id)?.classList.toggle('hidden', id !== 'homePage'));
+  clone.querySelector('#modal')?.classList.add('hidden');
+  const timer = clone.querySelector('#humanTimerDisplay');
+  if (timer) timer.style.display = 'none';
+
+  let html = '<!doctype html>\n' + clone.outerHTML;
+  html = html.replace(/const defaults\s*=\s*\{[\s\S]*?\}\s*;/, () => 'const defaults = ' + JSON.stringify(cfg) + ';');
+  html = html.replace(/const BUILD_VERSION\s*=\s*'[^']*';/, () => `const BUILD_VERSION = '${distributionVersion}';`);
+  // Version distribuée : aucun bouton d'accès à l'administration.
+  html = html.replace(/<button\b[^>]*\bonclick\s*=\s*["']openAdmin\(\)["'][^>]*>[\s\S]*?<\/button>/gi, '');
+
+  downloadBlob(new File([html], `Space Dice Battle - ${distributionVersion}.html`, { type: 'text/html' }));
+}
+/* ===== 11. MULTIJOUEUR EN LIGNE (SUPABASE) =================================
+   Le même moteur de jeu tourne sur chaque appareil. L'appareil du joueur actif
+   publie un « snapshot » de la partie dans la ligne du salon ; les autres
+   l'appliquent (abonnement temps réel + lecture régulière).                 */
+
+const MP_DEFAULT_CONFIG = {
+  url: 'https://xmdwwrdfiljuvteipxhd.supabase.co',
+  key: 'sb_publishable_gZ73Qz1jtT1wQBuevjW1Zg_iS8NBWqi'
+};
+const MP_POLL_MS = 1200;
+const MP_SYNC_DEBOUNCE_MS = 250;
+
+let mpClient = null, mpChannel = null, mpRoom = null, mpPlayer = null, mpStartedAt = null;
+let mpRoster = [];                 // joueurs du salon, dans l'ordre des sièges du moteur
+let mpLastRoomState = null;        // dernier état du salon reçu (pour réafficher le salon)
+let mpOnlineMode = false, mpJoinInProgress = false;
+let mpRefreshTimer = null, mpPolling = false, mpSyncTimer = null;
+let mpApplyingRemote = false, mpLastAppliedAt = 0, mpGameRevision = 0, mpLastPublishedSignature = '';
+let mpHandoff = null, mpHandoffTimer = null, mpHandoffInterval = null, mpHandoffToken = 0, mpHandoffModalStartedAt = 0;
+let mpRemoteTimeoutInFlight = false, mpRemoteTimeoutKey = '', mpRemoteRollToken = 0;
+
+/* ----- Connexion ----- */
+
+function mpLoadConfig() {
+  try { return JSON.parse(store.get(STORAGE_KEYS.mpConfig, 'null')) || MP_DEFAULT_CONFIG; }
+  catch (e) { return MP_DEFAULT_CONFIG; }
+}
+
+function mpSetStatus(msg, good = false) {
+  const el = $('mpStatus');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.borderColor = good ? '#257a58' : '#795c2a';
+  el.style.background = good ? '#0e2a21' : '#2a210f';
+  el.style.color = good ? '#9ff0c8' : '#f6d78c';
+}
+
+function openOnlineMultiplayer() {
+  showPage('mpPage');
+  if (!mpClient) mpConnect();
+}
+
+async function mpConnect() {
+  const url = String(mpLoadConfig().url || '').trim().replace(/\/$/, '');
+  const key = String(mpLoadConfig().key || '').trim();
+  if (!/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(url) || !key) { mpSetStatus('URL ou clé publique invalide.'); return; }
+  if (!window.supabase?.createClient) {
+    mpSetStatus('La bibliothèque Supabase ne s’est pas chargée. Vérifie la connexion Internet puis recharge la page.');
+    return;
+  }
+  try {
+    mpClient = window.supabase.createClient(url, key);
+    const { error } = await mpClient.from('sdb_rooms').select('code').limit(1);
+    if (error) throw error;
+    mpSetStatus('Connexion réussie. Tu peux créer un salon ou rejoindre un salon existant.', true);
+  } catch (e) {
+    mpClient = null;
+    mpSetStatus('Connexion impossible : ' + (e.message || 'vérifie l’URL, la clé et le script SQL de configuration.'));
+  }
+}
+
+/* ----- Identité et couleurs ----- */
+
+function mpGetDeviceId() {
+  let id = store.get(STORAGE_KEYS.mpDevice);
+  if (!id) { id = uuid(); store.set(STORAGE_KEYS.mpDevice, id); }
+  return id;
+}
+
+function mpGetName() {
+  const name = (($('mpName')?.value) || store.get(STORAGE_KEYS.mpName, 'Pilote')).trim().slice(0, 24) || 'Pilote';
+  store.set(STORAGE_KEYS.mpName, name);
+  return name;
+}
+
+function mpNextAvailableColor(list) {
+  const used = new Set((list || []).map(p => String(p.color || '').toLowerCase()));
+  return PALETTE.find(c => !used.has(c.toLowerCase())) || PALETTE[(list || []).length % PALETTE.length];
+}
+
+/* Chaque joueur reçoit une couleur de la palette, sans doublon (résultat identique sur tous les appareils). */
+function mpNormalizeRoomColors(state) {
+  if (!state || !Array.isArray(state.players)) return state;
+  const used = new Set();
+  state.players = state.players.map((p, i) => {
+    let color = String(p.color || '').toLowerCase();
+    if (!PALETTE.some(c => c.toLowerCase() === color) || used.has(color)) {
+      color = PALETTE.find(c => !used.has(c.toLowerCase())) || PALETTE[i % PALETTE.length];
+    }
+    used.add(color.toLowerCase());
+    return { ...p, color };
+  });
+  return state;
+}
+
+function mpCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let out = '';
+  for (let i = 0; i < 6; i++) out += chars[Math.floor(Math.random() * chars.length)];
+  return out;
+}
+
+/* ----- Fenêtres « Créer » / « Rejoindre » ----- */
+
+const mpInRoom = () => !!(mpRoom && mpPlayer);
+
+function mpOpenLobbyWindow() {
+  openModal('SALON', '<div id="mpLobbyBox"></div>');
+  if (mpLastRoomState) mpRenderLobby(mpLastRoomState);
+}
+
+function mpOpenCreateWindow() {
+  if (!mpClient) { mpSetStatus('Connectez-vous d’abord au service en ligne.'); return; }
+  if (mpInRoom()) { mpOpenLobbyWindow(); return; }   // déjà dans un salon : on le réaffiche
+  openModal('CRÉER UNE PARTIE', `<div class="configCard">
+    <label>Ton nom de pilote</label>
+    <input id="mpName" maxlength="24" value="${esc(store.get(STORAGE_KEYS.mpName, 'Pilote'))}" placeholder="Ton nom">
+    <button class="btn good fullWidth mt10" onclick="mpCreateRoom()">CRÉER LE SALON</button>
+  </div><div id="mpLobbyBox"></div>`);
+}
+
+function mpOpenJoinWindow() {
+  if (!mpClient) { mpSetStatus('Connectez-vous d’abord au service en ligne.'); return; }
+  if (mpInRoom()) { mpOpenLobbyWindow(); return; }
+  openModal('REJOINDRE UNE PARTIE', `<div class="configCard">
+    <label>Ton nom de pilote</label>
+    <input id="mpName" maxlength="24" value="${esc(store.get(STORAGE_KEYS.mpName, 'Pilote'))}" placeholder="Ton nom">
+    <label class="mt8">Code du salon</label>
+    <input id="mpJoinCode" maxlength="6" class="upper" placeholder="Ex. A7K9Q2">
+    <button class="btn primary fullWidth mt10" onclick="mpJoinRoom()">REJOINDRE LE SALON</button>
+  </div><div id="mpLobbyBox"></div>`);
+}
+
+/* ----- Salon : création, arrivée, départ ----- */
+
+async function mpCreateRoom() {
+  if (!mpClient) { mpSetStatus('Connecte Supabase avant de créer un salon.'); return; }
+  if (mpInRoom()) return;
+  const name = mpGetName(), id = uuid(), color = mpNextAvailableColor([]);
+  for (let attempt = 0; attempt < 4; attempt++) {
+    const code = mpCode();
+    const state = mpNormalizeRoomColors({
+      status: 'lobby', maxPlayers: MAX_PLAYERS,
+      players: [{ id, deviceId: mpGetDeviceId(), name, color, host: true, joinedAt: new Date().toISOString() }],
+      createdAt: new Date().toISOString()
+    });
+    const { error } = await mpClient.from('sdb_rooms').insert({ code, state, host_id: id });
+    if (!error) {
+      mpRoom = code; mpPlayer = id;
+      await mpWatchRoom();
+      mpRenderLobby(state);
+      mpSetStatus('Salon créé. Partage le code avec les autres joueurs.', true);
+      return;
+    }
+    if (!/duplicate|unique/i.test(error.message || '')) { mpSetStatus('Création impossible : ' + error.message); return; }
+  }
+  mpSetStatus('Impossible de générer un code unique. Réessaie.');
+}
+
+async function mpJoinRoom() {
+  if (mpJoinInProgress) return;
+  if (mpInRoom()) { mpSetStatus('Cette page est déjà dans un salon. Quitte-le avant de rejoindre une autre partie.'); return; }
+  if (!mpClient) { mpSetStatus('Connecte Supabase avant de rejoindre un salon.'); return; }
+  mpJoinInProgress = true;
+  try {
+    const code = ($('mpJoinCode')?.value || '').trim().toUpperCase();
+    if (!/^[A-HJ-NP-Z2-9]{6}$/.test(code)) { mpSetStatus('Entre un code de salon de 6 caractères.'); return; }
+    const { data, error } = await mpClient.from('sdb_rooms').select('code,state,host_id').eq('code', code).maybeSingle();
+    if (error || !data) { mpSetStatus('Salon introuvable : ' + (error?.message || 'vérifie le code.')); return; }
+
+    const state = mpNormalizeRoomColors(data.state || { status: 'lobby', players: [] });
+    const roster = state.players || [];
+    const deviceId = mpGetDeviceId();
+    if (roster.some(p => p.deviceId === deviceId)) { mpSetStatus('Cet appareil est déjà inscrit dans ce salon. Un seul joueur par appareil est autorisé.'); return; }
+    if (state.status !== 'lobby') { mpSetStatus('Cette partie a déjà commencé ou le salon est fermé.'); return; }
+    if (roster.length >= MAX_PLAYERS) { mpSetStatus('Ce salon est complet (6 joueurs maximum).'); return; }
+
+    const id = uuid();
+    state.players = [...roster, { id, deviceId, name: mpGetName(), color: mpNextAvailableColor(roster), host: false, joinedAt: new Date().toISOString() }];
+    const { error: upErr } = await mpClient.from('sdb_rooms').update({ state }).eq('code', code);
+    if (upErr) { mpSetStatus('Impossible de rejoindre : ' + upErr.message); return; }
+
+    mpRoom = code; mpPlayer = id;
+    await mpWatchRoom();
+    mpRenderLobby(state);
+    mpSetStatus('Salon rejoint. Le créateur voit ton arrivée.', true);
+  } catch (e) {
+    mpSetStatus('Erreur pendant la connexion au salon : ' + (e?.message || 'erreur inconnue'));
+  } finally {
+    mpJoinInProgress = false;
+  }
+}
+
+async function mpStartRoom() {
+  if (!mpClient || !mpRoom || !mpPlayer) { mpSetStatus('Rejoins un salon avant de le lancer.'); return; }
+  try {
+    const { data, error } = await mpClient.from('sdb_rooms').select('state,host_id').eq('code', mpRoom).maybeSingle();
+    if (error || !data) throw error || new Error('Salon introuvable.');
+    if (data.host_id !== mpPlayer) { mpSetStatus('Seul le créateur du salon peut le lancer.'); return; }
+    const state = mpNormalizeRoomColors(data.state || {});
+    const count = (state.players || []).length;
+    if (count < MIN_PLAYERS) { mpSetStatus('Il faut au moins 2 joueurs pour lancer la partie.'); return; }
+    if (count > MAX_PLAYERS) { mpSetStatus('Maximum 6 joueurs par salon.'); return; }
+
+    state.status = 'playing';
+    state.startedAt = new Date().toISOString();
+    state.turnIndex = 0;
+    state.game = { version: 1, phase: 'waiting_for_game_sync' };
+    const { error: upErr } = await mpClient.from('sdb_rooms').update({ state }).eq('code', mpRoom);
+    if (upErr) throw upErr;
+    mpRenderLobby(state);
+    mpLaunchGame(state);
+    mpSetStatus('Salon lancé. Le plateau du jeu existant s’ouvre sur les appareils connectés.', true);
+  } catch (e) {
+    mpSetStatus('Impossible de lancer le salon : ' + (e.message || 'erreur inconnue'));
+  }
+}
+
+async function mpRemovePlayer(playerId) {
+  if (!mpClient || !mpRoom || !mpPlayer || !playerId) { mpSetStatus('Impossible de retirer ce joueur.'); return; }
+  try {
+    const { data, error } = await mpClient.from('sdb_rooms').select('state,host_id').eq('code', mpRoom).maybeSingle();
+    if (error || !data) throw error || new Error('Salon introuvable.');
+    if (data.host_id !== mpPlayer) { mpSetStatus('Seul l’hôte peut retirer un joueur.'); return; }
+    const state = mpNormalizeRoomColors(data.state || {});
+    if (state.status !== 'lobby') { mpSetStatus('Les joueurs ne peuvent être retirés qu’avant le lancement.'); return; }
+    const removed = (state.players || []).find(p => p.id === playerId);
+    if (!removed || removed.id === mpPlayer) { mpSetStatus('Ce joueur ne peut pas être retiré.'); return; }
+    state.players = state.players.filter(p => p.id !== playerId);
+    const { error: upErr } = await mpClient.from('sdb_rooms').update({ state }).eq('code', mpRoom);
+    if (upErr) throw upErr;
+    mpRenderLobby(state);
+    mpSetStatus(`${removed.name || 'Le joueur'} a été retiré du salon.`, true);
+  } catch (e) {
+    mpSetStatus('Retrait impossible : ' + (e.message || 'erreur inconnue'));
+  }
+}
+
+/* Quitter le salon depuis le lobby : l'hôte (ou le dernier joueur) supprime le salon, sinon on s'en retire. */
+async function mpLeaveRoom() {
+  try {
+    if (mpClient && mpRoom && mpPlayer) {
+      const { data } = await mpClient.from('sdb_rooms').select('state,host_id').eq('code', mpRoom).maybeSingle();
+      if (data) {
+        const state = data.state || {};
+        state.players = (state.players || []).filter(p => p.id !== mpPlayer);
+        if (!state.players.length || data.host_id === mpPlayer) await mpClient.from('sdb_rooms').delete().eq('code', mpRoom);
+        else await mpClient.from('sdb_rooms').update({ state }).eq('code', mpRoom);
+      }
+    }
+  } catch (e) { /* départ au mieux : on quitte quand même localement */ }
+  mpResetSession();
+  closeModal();
+  mpSetStatus('Tu as quitté le salon.');
+}
+
+/* Coupe tout ce qui relie cet appareil à un salon (abonnement, lecture régulière, minuteurs). */
+function mpResetSession() {
+  mpStopPolling();
+  clearTimeout(mpSyncTimer);
+  mpHandoffClearTimers();
+  mpHandoff = null;
+  const channel = mpChannel;
+  mpChannel = null;
+  if (channel && mpClient) { try { Promise.resolve(mpClient.removeChannel(channel)).catch(() => {}); } catch (e) { /* ignoré */ } }
+  mpRoom = null; mpPlayer = null; mpStartedAt = null;
+  mpOnlineMode = false; mpRoster = []; mpLastRoomState = null;
+  mpLastAppliedAt = 0; mpGameRevision = 0; mpLastPublishedSignature = '';
+  mpHandoffModalStartedAt = 0;
+  const page = $('mpLobby'); if (page) page.innerHTML = '';
+}
+
+/* ----- Affichage du salon ----- */
+
+function mpRenderLobby(state) {
+  state = mpNormalizeRoomColors(state);
+  mpLastRoomState = state;
+
+  // Le salon s'affiche dans la fenêtre ouverte s'il y en a une, sinon directement dans la page.
+  const box = $('mpLobbyBox');
+  const inModal = box && !$('modal').classList.contains('hidden');
+  const el = inModal ? box : $('mpLobby');
+  if (!el) return;
+  if (inModal) $('mpLobby').innerHTML = '';
+
+  const roster = state.players || [];
+  const isHost = roster.some(p => p.id === mpPlayer && p.host);
+  const canRemove = isHost && state.status === 'lobby';
+  const rows = roster.map(p => {
+    const removable = canRemove && p.id !== mpPlayer;
+    const safeId = String(p.id).replace(/[^a-zA-Z0-9-]/g, '');
+    return `<div class="setupRow lobbyRow${removable ? ' removable' : ''}">
+      <span><b style="color:${safeColor(p.color)}">● ${esc(p.name)}</b></span>
+      <span class="role">${p.host ? 'HÔTE' : 'JOUEUR'}${p.id === mpPlayer ? ' • TOI' : ''}</span>
+      ${removable ? `<button class="btn orange small" onclick="mpRemovePlayer('${safeId}')">RETIRER</button>` : ''}
+    </div>`;
+  }).join('');
+
+  const labels = { lobby: 'EN ATTENTE DES JOUEURS', starting: 'PARTIE PRÊTE À DÉMARRER', playing: 'PARTIE LANCÉE' };
+  const canStart = isHost && roster.length >= MIN_PLAYERS && state.status === 'lobby';
+  el.innerHTML = `<div class="configCard mt10">
+    <div class="row"><b>CODE DU SALON</b><strong id="mpVisibleCode" class="roomCode">${esc(mpRoom || '')}</strong></div>
+    <button class="btn primary fullWidth mt8" onclick="mpCopyRoomCode()">📋 COPIER LE CODE DU SALON</button>
+    <div class="hint left">${roster.length}/${MAX_PLAYERS} joueurs • ${labels[state.status] || 'SALON FERMÉ'}</div>
+    <div class="mt8">${rows}</div>
+    ${canRemove ? '<div class="hint left">En tant qu’hôte, tu peux retirer un joueur avant le lancement.</div>' : ''}
+    <div class="notice mt10">${state.status === 'lobby'
+      ? 'Partage le code avec les autres joueurs. Le créateur peut lancer le salon dès que 2 joueurs sont présents.'
+      : 'Le jeu existant s’ouvre après le lancement. Les états de combat sont partagés entre les appareils.'}</div>
+    ${canStart ? '<button class="btn good fullWidth mt8" onclick="mpStartRoom()">🚀 LANCER LE SALON</button>' : ''}
+    <button class="btn fullWidth mt8" onclick="mpLeaveRoom()">QUITTER LE SALON</button>
+  </div>`;
+}
+
+async function mpCopyRoomCode() {
+  const code = String(mpRoom || $('mpVisibleCode')?.textContent || '').trim();
+  if (!code) { mpSetStatus('Aucun code de salon à copier.'); return; }
+  let copied = false;
+  try {
+    if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(code); copied = true; }
+  } catch (e) { /* repli ci-dessous */ }
+  if (!copied) {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = code; ta.readOnly = true;
+      ta.setAttribute('aria-label', 'Code du salon');
+      ta.className = 'copyFallback';
+      document.body.appendChild(ta);
+      ta.focus(); ta.select(); ta.setSelectionRange(0, code.length);
+      copied = !!document.execCommand('copy');
+      ta.remove();
+    } catch (e) { /* repli ci-dessous */ }
+  }
+  if (copied) mpSetStatus('Code ' + code + ' copié. Tu peux le coller dans un message.', true);
+  else {
+    window.prompt('La copie automatique est bloquée par le navigateur. Sélectionne puis copie ce code :', code);
+    mpSetStatus('Le code du salon est affiché pour copie manuelle : ' + code, true);
+  }
+}
+
+/* ----- Abonnement au salon ----- */
+
+function mpHandleRoomState(state, announce) {
+  mpRenderLobby(state);
+  if (announce && state.status !== 'lobby') mpSetStatus('État du salon : ' + state.status, true);
+  mpLaunchGame(state);
+  if (state.gameSnapshot) mpApplyGameSnapshot(state.gameSnapshot);
+}
+
+async function mpWatchRoom() {
+  if (mpChannel && mpClient) await mpClient.removeChannel(mpChannel);
+  mpChannel = mpClient.channel('sdb-room-' + mpRoom)
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'sdb_rooms', filter: 'code=eq.' + mpRoom },
+      payload => { if (payload.new?.state) mpHandleRoomState(payload.new.state, true); })
+    .subscribe();
+  // Lecture immédiate : le salon a pu être lancé avant l'abonnement.
+  try {
+    const { data } = await mpClient.from('sdb_rooms').select('state').eq('code', mpRoom).maybeSingle();
+    if (data?.state) mpHandleRoomState(data.state, false);
+  } catch (e) { /* le prochain événement ou la lecture régulière rattrapera */ }
+}
+
+/* Ouvre le plateau avec les joueurs du salon (même moteur que le mode hors connexion). */
+function mpLaunchGame(state) {
+  if (!state || state.status !== 'playing' || !state.startedAt || mpStartedAt === state.startedAt) return;
+  const roster = Array.isArray(state.players) ? mpNormalizeRoomColors({ players: state.players }).players : [];
+  if (roster.length < MIN_PLAYERS || roster.length > MAX_PLAYERS) return;
+
+  mpStartedAt = state.startedAt;
+  mpOnlineMode = true;
+  mpRoster = roster.slice();
+  mpLastPublishedSignature = '';
+  hideModal();   // le plateau prend la place du salon
+
+  setupData = roster.map((p, i) => ({
+    name: String(p.name || `Pilote ${i + 1}`).slice(0, 24), human: true, color: p.color || PALETTE[i % PALETTE.length]
+  }));
+  startGame(setupData);
+  mpStartPolling();
+  mpSetStatus('Combat ouvert. Synchronisation active : dés, état des vaisseaux et tours.', true);
+  setTimeout(() => { if (mpOnlineMode && !gameOver && mpIsMyTurn()) mpPublishGameSnapshot(true); }, 350);
+}
+
+/* ----- Sièges et tours ----- */
+
+const mpLocalSeat = () => mpRoster.findIndex(p => p.id === mpPlayer);
+function mpIsMyTurn() {
+  if (!mpOnlineMode) return true;
+  const seat = mpLocalSeat();
+  return seat >= 0 && seat === current && !!players[seat]?.alive;
+}
+
+/* ----- Publication de l'état ----- */
+
+function mpBuildGameSnapshot() {
+  return {
+    revision: ++mpGameRevision,
+    updatedAt: Date.now(),
+    players: players.map(p => ({ ...p })),
+    current, dice: dice.slice(), kept: kept.slice(), rolls, phase, gameOver,
+    logs: logs.slice(-80),
+    lastTurnSummary, target,
+    startedAt: mpStartedAt,
+    turnDeadline: humanTurnDeadline || 0,
+    handoff: mpHandoff ? JSON.parse(JSON.stringify(mpHandoff)) : null
+  };
+}
+
+function mpGameSignature(snap) {
+  try {
+    return JSON.stringify({
+      players: snap.players, current: snap.current, dice: snap.dice, kept: snap.kept, rolls: snap.rolls,
+      phase: snap.phase, gameOver: snap.gameOver, logs: snap.logs, target: snap.target,
+      turnDeadline: snap.turnDeadline, handoff: snap.handoff
+    });
+  } catch (e) { return String(Date.now()); }
+}
+
+function mpScheduleGameSync() {
+  if (!mpOnlineMode || mpApplyingRemote || !mpClient || !mpRoom || !mpPlayer || (gameOver && phase === 'idle')) return;
+  if (!mpIsMyTurn()) return;
+  clearTimeout(mpSyncTimer);
+  mpSyncTimer = setTimeout(mpPublishGameSnapshot, MP_SYNC_DEBOUNCE_MS);
+}
+
+async function mpPublishGameSnapshot(force = false) {
+  if (!mpOnlineMode || mpApplyingRemote || !mpClient || !mpRoom || !mpPlayer || (force !== true && !mpIsMyTurn())) return;
+  try {
+    // Rien de nouveau depuis le dernier envoi : on évite l'aller-retour réseau.
+    if (mpGameSignature(mpBuildGameSnapshot()) === mpLastPublishedSignature) return;
+
+    const { data, error } = await mpClient.from('sdb_rooms').select('state').eq('code', mpRoom).maybeSingle();
+    if (error) throw error;
+    if (!data) return;
+    const state = data.state || {};
+    if (state.status !== 'playing') return;
+
+    const snap = mpBuildGameSnapshot();   // reconstruit après la lecture : état le plus frais
+    const signature = mpGameSignature(snap);
+    if (signature === mpLastPublishedSignature) return;
+    state.gameSnapshot = snap;
+    const { error: upErr } = await mpClient.from('sdb_rooms').update({ state }).eq('code', mpRoom);
+    if (upErr) throw upErr;
+    mpLastPublishedSignature = signature;
+    mpSetStatus('Synchronisation envoyée • ' + new Date().toLocaleTimeString(), true);
+  } catch (e) {
+    console.warn('Synchronisation SDB:', e);
+    mpSetStatus('Erreur de synchronisation : ' + (e.message || 'écriture Supabase refusée.'));
+  }
+}
+
+/* ----- Application d'un état reçu ----- */
+
+/* Animation purement visuelle sur les appareils qui observent un lancer : ne touche jamais à l'état. */
+function mpAnimateRemoteRoll(finalValues, lockedValues) {
+  const tray = $('tray');
+  if (!tray || !Array.isArray(finalValues) || finalValues.length !== DICE_COUNT) return;
+  const token = ++mpRemoteRollToken;
+  const els = [...tray.querySelectorAll('.die')];
+  if (els.length !== DICE_COUNT) return;
+  const start = performance.now();
+
+  els.forEach((el, i) => {
+    if (lockedValues[i]) return;
+    el.animate([
+      { transform: 'translateY(0) rotateZ(0deg) scale(1)' },
+      { transform: 'translateY(-10px) rotateZ(8deg) scale(1.06)', offset: .22 },
+      { transform: 'translateY(5px) rotateZ(-10deg) scale(.97)', offset: .48 },
+      { transform: 'translateY(-4px) rotateZ(5deg) scale(1.03)', offset: .75 },
+      { transform: 'translateY(0) rotateZ(0deg) scale(1)' }
+    ], { duration: ROLL_ANIM_MS, easing: 'cubic-bezier(.18,.72,.2,1)', fill: 'forwards' });
+
+    let last = 0;
+    const spin = now => {
+      if (token !== mpRemoteRollToken) return;
+      if (now - start < ROLL_ANIM_MS - 160) {
+        if (now - last > 75) { el.innerHTML = cubeHTML(rollDie()); last = now; }
+        requestAnimationFrame(spin);
+      } else {
+        el.innerHTML = cubeHTML(finalValues[i]);
+      }
+    };
+    requestAnimationFrame(spin);
+  });
+  setTimeout(() => {
+    if (token !== mpRemoteRollToken) return;
+    els.forEach((el, i) => { el.innerHTML = cubeHTML(finalValues[i]); el.style.transform = ''; });
+  }, ROLL_ANIM_MS + 80);
+}
+
+/* Un joueur vivant localement est mort dans l'état distant (élimination ou départ). */
+const mpRemoteDeath = snap => players.some((p, i) => !!p?.alive && !!snap.players[i] && !snap.players[i].alive);
+
+function mpApplyGameSnapshot(snap) {
+  mpApplySnapshotCore(snap);
+  // Après chaque état reçu : le chrono ne tourne que sur l'appareil du joueur dont c'est le tour.
+  if (!mpOnlineMode || !snap || gameOver) return;
+  if (!mpHandoff && mpIsMyTurn() && !humanTurnDeadline && !humanTurnTimer) startHumanTurnTimer();
+  if (mpIsMyTurn() && humanTurnDeadline) setTimeout(() => mpPublishGameSnapshot(true), 80);
+  updateHumanTurnCountdown();
+}
+
+function mpApplySnapshotCore(snap) {
+  if (!mpOnlineMode || !snap || !Array.isArray(snap.players) || Number(snap.updatedAt || 0) <= mpLastAppliedAt) return;
+
+  const remoteDeath = mpRemoteDeath(snap);
+
+  // Juste après une action locale (combinaison choisie), le moteur termine sa résolution et publie
+  // lui-même : un état concurrent est ignoré. Une élimination ou une fin de partie reste prioritaire.
+  if (Date.now() < localActionUntil && !snap.gameOver && !remoteDeath) return;
+
+  // Pendant que le joueur actif choisit sa combinaison ou sa cible, aucun état distant ne doit annuler son choix.
+  const choosingTarget = modalIsOpen(MODAL.TARGET);
+  const choosingLocally = mpLocalSeat() === current && !!players[current]?.alive && !gameOver &&
+    (modalIsOpen(MODAL.CHOICE) || choosingTarget);
+  if (choosingLocally && !remoteDeath) return;
+
+  // Jamais d'état en retard sur le tour que l'on joue (les dés gardés ne doivent pas se décocher).
+  if (!snap.gameOver && !remoteDeath && mpIsMyTurn() && Number(snap.current) === current && phase !== 'handoff') return;
+
+  const previousCurrent = current;
+  const previousRolls = rolls;
+
+  // Un adversaire part pendant que ce joueur lance ses dés : on ne fusionne que les éliminations et le journal.
+  const preserveLocalTurn = remoteDeath && !snap.gameOver && mpLocalSeat() === current &&
+    !!players[current]?.alive && Number(snap.current) === current && phase !== 'handoff';
+
+  mpApplyingRemote = true;
+  try {
+    if (preserveLocalTurn) {
+      mpMergeRemoteDepartures(snap, choosingTarget);
+    } else {
+      players = snap.players.map(p => ({ ...p }));
+      current = Number(snap.current) || 0;
+      dice = Array.isArray(snap.dice) ? snap.dice.slice() : [];
+      kept = Array.isArray(snap.kept) ? snap.kept.slice() : [];
+      rolls = Number(snap.rolls) || 0;
+      phase = snap.phase || 'rolling';
+      gameOver = !!snap.gameOver;
+      logs = Array.isArray(snap.logs) ? snap.logs.slice() : [];
+      lastTurnSummary = snap.lastTurnSummary || snap.handoff?.summary || null;
+      target = snap.target ?? null;
+      humanTurnDeadline = Number(snap.turnDeadline) || 0;
+      mpHandoff = snap.handoff || null;
+      mpLastAppliedAt = Number(snap.updatedAt) || Date.now();
+      mpGameRevision = Math.max(mpGameRevision, Number(snap.revision) || 0);
+    }
+
+    if (!preserveLocalTurn && !$('game').classList.contains('hidden')) {
+      renderRecap();
+      render();
+      if (!mpIsMyTurn() && Number(snap.current) === previousCurrent && Number(snap.rolls) > previousRolls && Array.isArray(snap.dice)) {
+        mpAnimateRemoteRoll(snap.dice, Array.isArray(snap.kept) ? snap.kept : []);
+      }
+      mpSyncModalsAfterSnapshot(previousCurrent);
+    }
+  } catch (e) {
+    console.warn('Application état distant:', e);
+  } finally {
+    mpApplyingRemote = false;
+  }
+}
+
+/* Fusion partielle : quelqu'un est parti/éliminé alors que ce joueur est en plein tour. */
+function mpMergeRemoteDepartures(snap, wasChoosingTarget) {
+  players = players.map((p, i) => ({
+    ...p, ...(snap.players[i] || {}),
+    ...(p.alive && snap.players[i]?.alive === false ? { alive: false, pv: 0, shield: 0 } : {})
+  }));
+  if (Array.isArray(snap.logs) && snap.logs.length > logs.length) logs = snap.logs.slice(-80);
+  mpLastAppliedAt = Number(snap.updatedAt) || Date.now();
+  mpGameRevision = Math.max(mpGameRevision, Number(snap.revision) || 0);
+  renderRecap();
+  render();
+
+  const survivors = players.filter(p => p.alive);
+  if (survivors.length <= 1) {
+    clearHumanTurnTimer(); clearNextPlayerTimer(); closeModal();
+    pendingTargetPlan = null; target = null;
+    endGame(survivors.length === 1
+      ? `${survivors[0].name} remporte la partie. Tous les autres joueurs ont quitté la partie ou sont éliminés.`
+      : 'MATCH NUL : aucun vaisseau ne survit.');
+    mpPublishGameSnapshot(true).catch(e => console.warn('Publication de fin de partie après départ:', e));
+  } else if (wasChoosingTarget && pendingTargetPlan) {
+    if (players.some((p, i) => i !== current && p.alive)) {
+      openTargetModal(pendingTargetPlan);   // la liste des cibles est rafraîchie
+    } else {
+      closeModal(); pendingTargetPlan = null; target = null;
+      const survivor = players.find(p => p.alive);
+      endGame(survivor ? `${survivor.name} remporte la partie.` : 'MATCH NUL : aucun vaisseau ne survit.');
+    }
+  }
+}
+
+/* Après application d'un état complet : fenêtres (fin de partie, passage) et chrono. */
+function mpSyncModalsAfterSnapshot(previousCurrent) {
+  if (gameOver) {
+    if (!modalIsOpen(MODAL.END)) {
+      const winner = logs.length ? logs[logs.length - 1] : 'La partie est terminée.';
+      openModal(MODAL.END, `<div class="modalCenter big"><h2>${esc(winner)}</h2>
+        <button class="btn orange" onclick="closeModal();newGame()">NOUVELLE PARTIE</button></div>`);
+    }
+  } else if (mpHandoff) {
+    stopObserverTimer();
+    if (mpLocalSeat() === mpHandoff.nextIndex && mpAllAcked(mpHandoff)) mpCompleteHandoff();
+    else mpShowHandoffModal();
+  } else if (mpIsMyTurn()) {
+    if (modalIsOpen(MODAL.NEXT)) hideModal();
+    if (previousCurrent !== current || !humanTurnTimer) startHumanTurnTimer();
+  } else {
+    stopObserverTimer();
+    updateHumanTurnCountdown();
+  }
+}
+
+/* ----- Lecture régulière et prise de relais ----- */
+
+function mpStartPolling() {
+  mpStopPolling();
+  mpRefreshTimer = setInterval(mpPollGameSnapshot, MP_POLL_MS);
+  mpPollGameSnapshot();
+}
+function mpStopPolling() {
+  if (mpRefreshTimer) clearInterval(mpRefreshTimer);
+  mpRefreshTimer = null;
+}
+
+async function mpPollGameSnapshot() {
+  if (!mpOnlineMode || !mpClient || !mpRoom || mpPolling) return;
+  mpPolling = true;
+  try {
+    const { data, error } = await mpClient.from('sdb_rooms').select('state').eq('code', mpRoom).maybeSingle();
+    if (error) throw error;
+    if (data?.state?.gameSnapshot) {
+      mpApplyGameSnapshot(data.state.gameSnapshot);
+      await mpHandleExpiredRemoteTurn(data.state.gameSnapshot);
+    }
+  } catch (e) {
+    console.warn('Lecture synchronisation:', e);
+  } finally {
+    mpPolling = false;
+  }
+}
+
+/* Le joueur actif n'agit plus (appareil inactif) : un autre appareil résout son tour à sa place. */
+async function mpHandleExpiredRemoteTurn(snap) {
+  if (!mpOnlineMode || !snap || gameOver || mpIsMyTurn() || snap.gameOver || snap.phase === 'handoff' ||
+      !Number(snap.turnDeadline) || Date.now() < Number(snap.turnDeadline)) return;
+  const activeIndex = Number(snap.current);
+  if (!snap.players?.[activeIndex]?.alive) return;
+  const key = [snap.updatedAt, activeIndex, snap.turnDeadline, snap.rolls].join(':');
+  if (mpRemoteTimeoutInFlight || mpRemoteTimeoutKey === key) return;
+  mpRemoteTimeoutInFlight = true;
+  mpRemoteTimeoutKey = key;
+  try {
+    // On relit juste avant d'agir : une action faite à l'échéance exacte l'emporte sur un état périmé.
+    const { data, error } = await mpClient.from('sdb_rooms').select('state').eq('code', mpRoom).maybeSingle();
+    if (error || !data?.state?.gameSnapshot) return;
+    const latest = data.state.gameSnapshot;
+    if (Number(latest.updatedAt) !== Number(snap.updatedAt) || Number(latest.current) !== activeIndex ||
+        Number(latest.turnDeadline) !== Number(snap.turnDeadline) || Date.now() < Number(latest.turnDeadline) ||
+        latest.gameOver || latest.phase === 'handoff') return;
+    mpApplyGameSnapshot(latest);
+    if (gameOver || current !== activeIndex || !players[current]?.alive) return;
+    expireCurrentTurn(resolvePlan, true);
+  } catch (e) {
+    console.warn('Expiration distante du tour:', e);
+  } finally {
+    mpRemoteTimeoutInFlight = false;
+  }
+}
+
+/* ----- Passage au joueur suivant (confirmation de chaque joueur, 10 s maximum) ----- */
+
+function mpHandoffClearTimers() {
+  if (mpHandoffTimer) clearTimeout(mpHandoffTimer);
+  if (mpHandoffInterval) clearInterval(mpHandoffInterval);
+  mpHandoffTimer = null; mpHandoffInterval = null;
+  mpHandoffToken++;
+}
+
+/* Joueurs dont la confirmation est attendue : tous les vivants sauf celui qui vient de jouer. */
+function mpRequiredAckIds(gate, playersList = players) {
+  return mpRoster.filter((p, i) => i !== gate.playedIndex && playersList[i]?.alive !== false).map(p => p.id);
+}
+const mpAckCount = gate => (gate.acks || []).filter(id => mpRequiredAckIds(gate).includes(id)).length;
+const mpAllAcked = gate => { const req = mpRequiredAckIds(gate); return req.length > 0 && req.every(id => (gate.acks || []).includes(id)); };
+const mpAckLabel = gate => `Confirmations : ${mpAckCount(gate)}/${Math.max(1, mpRequiredAckIds(gate).length)}`;
+
+function mpShowHandoffModal() {
+  if (!mpOnlineMode || !mpHandoff || gameOver) return;
+
+  // Fenêtre déjà affichée pour ce passage : on met seulement à jour le compteur de confirmations.
+  if (modalIsOpen(MODAL.NEXT) && mpHandoffModalStartedAt === Number(mpHandoff.startedAt)) {
+    const status = $('mp-handoff-status');
+    if (status) status.textContent = mpAckLabel(mpHandoff);
+    return;
+  }
+  mpHandoffModalStartedAt = Number(mpHandoff.startedAt || Date.now());
+
+  // Le joueur qui vient de jouer ne voit pas la fenêtre.
+  if (mpLocalSeat() === mpHandoff.playedIndex) { hideModal(); return; }
+
+  mpHandoffClearTimers();
+  const token = mpHandoffToken;
+  const deadline = Number(mpHandoff.startedAt || Date.now()) + HANDOFF_MS;
+  const paint = () => {
+    if (token !== mpHandoffToken) return;
+    const el = $('mp-handoff-countdown');
+    if (el) el.textContent = Math.max(0, Math.ceil((deadline - Date.now()) / 1000)) + ' s';
+  };
+
+  openModal(MODAL.NEXT, `<div class="modalCenter">
+    ${turnSummaryHtml(mpHandoff.summary)}
+    <div class="handoffHint">Confirme le passage au prochain joueur.</div>
+    <div class="handoffLabel">Passage automatique dans</div>
+    <div id="mp-handoff-countdown" class="countdown">${HANDOFF_MS / 1000} s</div>
+    <button class="btn good handoffBtn" onclick="mpAcknowledgeHandoff()">▶ PROCHAIN JOUEUR</button>
+    <div id="mp-handoff-status" class="handoffStatus">En attente des autres joueurs…</div>
+  </div>`, null, true);
+  paint();
+  mpHandoffInterval = setInterval(paint, 250);
+  mpHandoffTimer = setTimeout(() => {
+    mpHandoffClearTimers();
+    if (mpLocalSeat() === mpHandoff?.nextIndex) mpCompleteHandoff();
+    else hideModal();
+  }, Math.max(0, deadline - Date.now()));
+}
+
+async function mpAcknowledgeHandoff() {
+  if (!mpHandoff || !mpClient || !mpRoom || !mpPlayer) return;
+  try {
+    const { data, error } = await mpClient.from('sdb_rooms').select('state').eq('code', mpRoom).maybeSingle();
+    if (error || !data) throw error || new Error('Salon introuvable');
+    const state = data.state || {};
+    const snap = state.gameSnapshot || {};
+    const gate = snap.handoff || mpHandoff;
+    if (!gate) return;
+    gate.acks = Array.from(new Set([...(gate.acks || []), mpPlayer]));
+    snap.handoff = gate;
+    snap.updatedAt = Date.now();
+    state.gameSnapshot = snap;
+    const { error: upErr } = await mpClient.from('sdb_rooms').update({ state }).eq('code', mpRoom);
+    if (upErr) throw upErr;
+
+    mpHandoff = gate;
+    const status = $('mp-handoff-status');
+    if (status) status.textContent = mpAckLabel(gate);
+    const required = mpRequiredAckIds(gate, snap.players);
+    if (required.every(id => gate.acks.includes(id)) && mpLocalSeat() === gate.nextIndex) mpCompleteHandoff();
+  } catch (e) {
+    console.warn('Confirmation prochain joueur:', e);
+  }
+}
+
+function mpCompleteHandoff() {
+  if (!mpHandoff || gameOver || mpLocalSeat() !== mpHandoff.nextIndex) return;
+  mpHandoffClearTimers();
+  mpHandoff = null;
+  mpHandoffModalStartedAt = 0;
+  hideModal();
+  phase = 'rolling'; rolls = 0; dice = []; kept = [];
+  target = players.length === 2 ? players.findIndex((p, i) => i !== current && p.alive) : null;
+  startTurn();
+  setTimeout(() => mpPublishGameSnapshot(true), 180);
+}
+
+/* ----- Quitter une partie en ligne ----- */
+
+async function mpLeaveGame(alreadyConfirmed = false) {
+  const seat = mpLocalSeat();
+  if (seat < 0 || !players[seat] || !players[seat].alive) return;
+  if (!alreadyConfirmed && !confirm('Quitter la partie en cours ? Vous serez éliminé.')) return;
+
+  const leaving = players[seat];
+  leaving.alive = false; leaving.pv = 0; leaving.shield = 0;
+  log(`Le joueur ${leaving.name} a quitté la partie.`);
+  clearHumanTurnTimer(); clearNextPlayerTimer();
+  target = null; animating = false; dice = []; kept = []; rolls = 0;
+  pendingTargetPlan = null; mpHandoff = null;
+
+  const alive = players.filter(p => p.alive);
+  if (alive.length <= 1) {
+    if (alive.length === 1) endGame(`${alive[0].name} remporte la partie. Le dernier adversaire a quitté la partie.`);
+    else { gameOver = true; phase = 'over'; render(); }
+  } else {
+    if (current === seat) current = nextAlive(seat);
+    else if (players[current] && !players[current].alive) current = nextAlive(current);
+    phase = 'rolling'; gameOver = false;
+    render();
+  }
+  try { await mpPublishGameSnapshot(true); } catch (e) { console.warn('Publication du départ:', e); }
+
+  // Le joueur qui abandonne voit son message, puis revient à l'accueil sans réintégrer la partie.
+  openModal('PARTIE QUITTÉE', `<div class="modalCenter big"><h2>Vous avez quitté la partie, vous avez perdu.</h2>
+    <button class="btn orange" onclick="mpFinishLeavingGame()">FERMER</button></div>`);
+}
+
+function mpFinishLeavingGame() {
+  closeModal();
+  clearHumanTurnTimer();
+  clearNextPlayerTimer();
+  mpResetSession();
+  gameOver = true;
+  phase = 'idle';
+  showHome();
+}
+
+/* ===== 12. DÉMARRAGE ====================================================== */
+
+initDiceTray();
+document.addEventListener('click', e => { if (!e.target.closest('.colorPop, .colorBtn')) closeColorPop(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeColorPop(); });
+showHome();
+</script>
+</body>
+</html>
