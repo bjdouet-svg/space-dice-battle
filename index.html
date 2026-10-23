@@ -813,11 +813,13 @@ body:before {
       <div class="quick" style="margin:12px 0">Le service en ligne se connecte automatiquement. Créez un salon ou rejoignez celui d’un autre joueur ; chaque action s’ouvre dans une sous-fenêtre.</div>
       <div id="mpStatus" class="notice mt10">Connexion au service en ligne…</div>
       <div id="mpActions" class="mpActions">
-        <div class="configCard"><b>CRÉER UNE PARTIE</b><p class="quick">Ouvrir un salon et inviter d’autres joueurs.</p>
+        <div class="configCard"><b>CRÉER UNE PARTIE</b><p class="quick">Choisir un salon public visible par tous ou privé accessible avec un code.</p>
           <button class="btn good" onclick="mpOpenCreateWindow()">CRÉER UNE PARTIE</button></div>
-        <div class="configCard"><b>REJOINDRE UNE PARTIE</b><p class="quick">Entrer le code du salon d’un ami.</p>
-          <button class="btn primary" onclick="mpOpenJoinWindow()">REJOINDRE UNE PARTIE</button></div>
+        <div class="configCard"><b>REJOINDRE UNE PARTIE</b><p class="quick">Rejoindre une partie publique ci-dessous ou saisir le code d’un ami.</p>
+          <button class="btn primary" onclick="mpOpenJoinWindow()">REJOINDRE AVEC UN CODE</button></div>
       </div>
+      <div class="configCard mt10"><div class="row"><b>PARTIES PUBLIQUES OUVERTES</b><button class="btn small" onclick="mpRefreshPublicRooms()">ACTUALISER</button></div>
+        <p class="quick">Seuls les salons publics en attente et non complets apparaissent ici.</p><div id="mpPublicRooms"><div class="hint left">Chargement des parties…</div></div></div>
       <div id="mpLobby"></div>
     </div>
   </section>
@@ -2448,6 +2450,7 @@ let mpRefreshTimer = null, mpPolling = false, mpSyncTimer = null;
 let mpApplyingRemote = false, mpLastAppliedAt = 0, mpGameRevision = 0, mpLastPublishedSignature = '';
 let mpHandoff = null, mpHandoffTimer = null, mpHandoffInterval = null, mpHandoffToken = 0, mpHandoffModalStartedAt = 0;
 let mpRemoteTimeoutInFlight = false, mpRemoteTimeoutKey = '', mpRemoteRollToken = 0;
+let mpPendingJoinCode = ''; // code présélectionné depuis la liste publique
 
 /* ----- Connexion ----- */
 
@@ -2468,6 +2471,7 @@ function mpSetStatus(msg, good = false) {
 function openOnlineMultiplayer() {
   showPage('mpPage');
   if (!mpClient) mpConnect();
+  else mpRefreshPublicRooms();
 }
 
 async function mpConnect() {
@@ -2482,7 +2486,8 @@ async function mpConnect() {
     mpClient = window.supabase.createClient(url, key);
     const { error } = await mpClient.from('sdb_rooms').select('code').limit(1);
     if (error) throw error;
-    mpSetStatus('Connexion réussie. Tu peux créer un salon ou rejoindre un salon existant.', true);
+    mpSetStatus('Connexion réussie. Les parties publiques sont disponibles ci-dessous.', true);
+    mpRefreshPublicRooms();
   } catch (e) {
     mpClient = null;
     mpSetStatus('Connexion impossible : ' + (e.message || 'vérifie l’URL, la clé et le script SQL de configuration.'));
@@ -2543,9 +2548,13 @@ function mpOpenCreateWindow() {
   if (!mpClient) { mpSetStatus('Connectez-vous d’abord au service en ligne.'); return; }
   if (mpInRoom()) { mpOpenLobbyWindow(); return; }   // déjà dans un salon : on le réaffiche
   openModal('CRÉER UNE PARTIE', `<div class="configCard">
-    <label>Ton nom de pilote</label>
+    <label>Nom de la partie</label>
+    <input id="mpRoomName" maxlength="40" value="${esc(store.get('mpRoomName', ''))}" placeholder="Ex. Soirée entre amis">
+    <label class="mt8">Ton nom de pilote</label>
     <input id="mpName" maxlength="24" value="${esc(store.get(STORAGE_KEYS.mpName, 'Pilote'))}" placeholder="Ton nom">
-    <button class="btn good fullWidth mt10" onclick="mpCreateRoom()">CRÉER LE SALON</button>
+    <label class="mt8">Type de partie</label>
+    <div class="mpActions mt8"><button class="btn good" onclick="mpCreateRoom('public')">🌐 PARTIE PUBLIQUE</button><button class="btn primary" onclick="mpCreateRoom('private')">🔒 PARTIE PRIVÉE</button></div>
+    <p class="hint left">Publique : visible dans la liste. Privée : accessible uniquement avec le code du salon.</p>
   </div><div id="mpLobbyBox"></div>`);
 }
 
@@ -2556,21 +2565,53 @@ function mpOpenJoinWindow() {
     <label>Ton nom de pilote</label>
     <input id="mpName" maxlength="24" value="${esc(store.get(STORAGE_KEYS.mpName, 'Pilote'))}" placeholder="Ton nom">
     <label class="mt8">Code du salon</label>
-    <input id="mpJoinCode" maxlength="6" class="upper" placeholder="Ex. A7K9Q2">
+    <input id="mpJoinCode" maxlength="6" class="upper" placeholder="Ex. A7K9Q2" value="${esc(mpPendingJoinCode)}">
     <button class="btn primary fullWidth mt10" onclick="mpJoinRoom()">REJOINDRE LE SALON</button>
   </div><div id="mpLobbyBox"></div>`);
+  mpPendingJoinCode = '';
+}
+
+/* ----- Liste des parties publiques ----- */
+async function mpRefreshPublicRooms() {
+  const el = $('mpPublicRooms');
+  if (!el) return;
+  if (!mpClient) { el.innerHTML = '<div class="hint left">Connexion au service en ligne en cours…</div>'; return; }
+  el.innerHTML = '<div class="hint left">Recherche des salons publics…</div>';
+  try {
+    // La visibilité est stockée dans state pour ne pas nécessiter de changement de table SQL.
+    const { data, error } = await mpClient.from('sdb_rooms').select('code,state').eq('state->>visibility', 'public').order('created_at', { ascending: false }).limit(50);
+    if (error) throw error;
+    const rooms = (data || []).filter(r => r.state?.status === 'lobby' && (r.state?.players || []).length < MAX_PLAYERS);
+    if (!rooms.length) { el.innerHTML = '<div class="hint left">Aucune partie publique ouverte pour le moment. Tu peux en créer une ou rejoindre un ami avec son code.</div>'; return; }
+    el.innerHTML = rooms.map(r => {
+      const count = (r.state.players || []).length;
+      const names = (r.state.players || []).map(p => esc(p.name || 'Pilote')).join(', ');
+      const roomName = esc(r.state.roomName || 'Partie publique');
+      return `<div class="setupRow lobbyRow"><span><b>${roomName}</b><span class="hint left">${esc(names)} · ${count}/${MAX_PLAYERS} joueurs • En attente</span></span><button class="btn primary small" onclick="mpJoinPublicRoom('${String(r.code).replace(/[^A-HJ-NP-Z2-9]/g, '')}')">REJOINDRE</button></div>`;
+    }).join('');
+  } catch (e) {
+    el.innerHTML = '<div class="hint left">Impossible de charger la liste. Vérifie les droits Supabase puis actualise.</div>';
+    console.warn('Liste des parties publiques :', e);
+  }
+}
+function mpJoinPublicRoom(code) {
+  mpPendingJoinCode = String(code || '').toUpperCase();
+  mpOpenJoinWindow();
 }
 
 /* ----- Salon : création, arrivée, départ ----- */
 
-async function mpCreateRoom() {
+async function mpCreateRoom(visibility = 'private') {
   if (!mpClient) { mpSetStatus('Connecte Supabase avant de créer un salon.'); return; }
   if (mpInRoom()) return;
+  visibility = visibility === 'public' ? 'public' : 'private';
   const name = mpGetName(), id = uuid(), color = mpNextAvailableColor([]);
+  const roomName = (($('mpRoomName')?.value || '').trim().slice(0, 40)) || `Partie de ${name}`;
+  store.set('mpRoomName', roomName);
   for (let attempt = 0; attempt < 4; attempt++) {
     const code = mpCode();
     const state = mpNormalizeRoomColors({
-      status: 'lobby', maxPlayers: MAX_PLAYERS,
+      status: 'lobby', visibility, roomName, maxPlayers: MAX_PLAYERS,
       players: [{ id, deviceId: mpGetDeviceId(), name, color, host: true, joinedAt: new Date().toISOString() }],
       createdAt: new Date().toISOString()
     });
@@ -2579,7 +2620,8 @@ async function mpCreateRoom() {
       mpRoom = code; mpPlayer = id;
       await mpWatchRoom();
       mpRenderLobby(state);
-      mpSetStatus('Salon créé. Partage le code avec les autres joueurs.', true);
+      mpSetStatus(visibility === 'public' ? 'Partie publique créée : elle apparaît dans la liste des parties ouvertes.' : 'Partie privée créée. Partage le code uniquement avec les joueurs invités.', true);
+      mpRefreshPublicRooms();
       return;
     }
     if (!/duplicate|unique/i.test(error.message || '')) { mpSetStatus('Création impossible : ' + error.message); return; }
@@ -2729,6 +2771,7 @@ function mpRenderLobby(state) {
   const labels = { lobby: 'EN ATTENTE DES JOUEURS', starting: 'PARTIE PRÊTE À DÉMARRER', playing: 'PARTIE LANCÉE' };
   const canStart = isHost && roster.length >= MIN_PLAYERS && state.status === 'lobby';
   el.innerHTML = `<div class="configCard mt10">
+    <div class="row"><b>${esc(state.roomName || 'Partie sans nom')}</b><span class="hint">${state.visibility === 'public' ? '🌐 PUBLIQUE' : '🔒 PRIVÉE'}</span></div>
     <div class="row"><b>CODE DU SALON</b><strong id="mpVisibleCode" class="roomCode">${esc(mpRoom || '')}</strong></div>
     <button class="btn primary fullWidth mt8" onclick="mpCopyRoomCode()">📋 COPIER LE CODE DU SALON</button>
     <div class="hint left">${roster.length}/${MAX_PLAYERS} joueurs • ${labels[state.status] || 'SALON FERMÉ'}</div>
