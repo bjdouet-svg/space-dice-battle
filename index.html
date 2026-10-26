@@ -1220,6 +1220,54 @@ input:focus,select:focus{outline:none;border-color:#55d8ff;box-shadow:0 0 10px #
 .pubInfo small{font-size:12px;color:#55d8ff}
 .pubList{grid-template-columns:minmax(0,1fr)}
 .pubRow .btn{flex:none;padding:7px 10px;font-size:11px}
+.modalCloseBtn{margin-top:12px}
+#modal:not(.inGame) .modalHead:before{display:none}
+
+/* ===== V41 : déconnexions ===== */
+.pcard.offline{filter:grayscale(1);opacity:.6}
+.pcard.offline .pinfo b{color:#9aa7b5}
+.offTag{color:#ffb347;font-weight:900;font-size:10px;letter-spacing:.3px}
+.setupRow.lobbyRow.offline{filter:grayscale(1);opacity:.65}
+.lobbyRow.offline .role{color:#ffb347;font-weight:900}
+
+/* ===== V42 : règles façon affiche ===== */
+.rulesTag{text-align:center;margin:-4px 0 12px;font-size:11px;letter-spacing:1.5px;color:#55d8ff;font-style:italic;font-weight:700}
+.rcard{margin-bottom:10px;padding:10px 12px;border:2px solid #1d5f8f;border-radius:12px;background:#07182c}
+.rcard h4{display:flex;align-items:center;gap:10px;margin:0 0 8px;font-size:15px;letter-spacing:.5px;color:#eaf6ff}
+.rcard h4 small{font-size:11px;color:#55e09a}
+.rnum{flex:none;display:grid;place-items:center;width:30px;height:30px;border:2px solid #38a6ff;border-radius:8px;background:#0a2a52;color:#bfe9ff;font-size:16px}
+.rcard p{margin:0 0 8px;font-size:13px;line-height:1.5;color:#dcecff}
+.rnote{margin:8px 0 0;padding:7px 10px;border-radius:6px;background:linear-gradient(100deg,#ffb52e,#f08a10);color:#241200;font-weight:900;font-size:13px;transform:rotate(-1deg)}
+.pvList{display:grid;gap:5px;margin-bottom:8px}
+.pvRow{display:flex;justify-content:space-between;padding:6px 10px;border-radius:7px;font-weight:700;font-size:13px}
+.pvRow b{font-size:14px}
+.pv0{background:#0f4a36}.pv1{background:#10407a}.pv2{background:#8a3a10}.pv3{background:#7a1d2e}
+.rsteps{margin:0;padding:0;list-style:none;display:grid;gap:7px}
+.rsteps li{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:#dcecff;line-height:1.4}
+.rsteps b{flex:none;display:grid;place-items:center;width:22px;height:22px;border:2px solid #38a6ff;border-radius:50%;background:#0a2a52;font-size:12px}
+.rlist{margin:0;padding-left:18px;font-size:13px;line-height:1.5;color:#dcecff}
+.rlist li{margin-bottom:4px}.rlist li::marker{color:#ffb347}
+.rtable{margin-bottom:10px;border:2px solid var(--k);border-radius:10px;overflow:hidden}
+.rtable.red{--k:#d63a22}.rtable.purple{--k:#a23ad6}.rtable.blue{--k:#2a7fe0}
+.rth{display:flex;justify-content:space-between;padding:7px 10px;background:var(--k);font-weight:900;font-size:12px;letter-spacing:.5px}
+.rrow{display:grid;grid-template-columns:1fr auto;gap:2px 8px;align-items:center;padding:7px 10px;border-top:1px solid #123c60}
+.rname b{font-size:13px}.rname small{display:block;font-size:11px;color:#91a8c2}
+.rrow .rdice{grid-column:1;grid-row:2}
+.reffect{grid-column:2;grid-row:1 / span 2;text-align:right;font-weight:900;font-size:15px;color:#ffb347;line-height:1.2}
+.rdice{display:inline-flex;gap:2px;flex-wrap:wrap}
+.rdice .mini{width:25px;height:25px}
+.rhero{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+.rhero .mini{width:46px;height:46px;flex:none}
+.rhero p{margin:0}
+.rexample{margin:8px 0;padding:8px 10px;border:2px solid #7a1d2e;border-radius:10px;background:#12101c}
+.rexample>b{display:block;margin-bottom:6px;font-size:12px;color:#ffb347}
+.rexDice{display:flex;gap:10px;margin-bottom:6px;flex-wrap:wrap}
+.runused .mini{filter:saturate(.5);opacity:.85;outline:2px dashed #ff4a4a;outline-offset:1px;border-radius:6px}
+.rwarn{margin-top:8px;padding:8px 10px;border-radius:8px;background:#b3141c;color:#fff;font-weight:700;font-size:13px;line-height:1.4}
+.rcard.warn{border-color:#c0402a}
+.rfoot{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.rfoot div{display:grid;gap:2px;justify-items:center;padding:8px 4px;border:2px solid #1d5f8f;border-radius:10px;background:#07182c;text-align:center}
+.rfoot span{font-size:22px}.rfoot b{font-size:10px;color:#55d8ff}.rfoot small{font-size:10px;color:#91a8c2}
 </style>
 </head>
 <body>
@@ -1268,9 +1316,10 @@ input:focus,select:focus{outline:none;border-color:#55d8ff;box-shadow:0 0 10px #
   <!-- Règles -->
   <section id="rulesPage" class="subScreen hidden">
   <div class="subTop"><button class="btn" onclick="showHome()">← RETOUR À L’ACCUEIL</button></div>
-  <div class="quickPanel"><i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+  <div class="quickPanel rulesPanel"><i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
     <div class="quickTitle">RÈGLES <span>DU JEU</span></div>
-    <div class="ruleCard"><h4>OBJECTIF</h4><p>Être le dernier vaisseau vivant.</p></div><div class="ruleCard"><h4>TOUR DE JEU</h4><p>1. Lancer les 6 dés.<br>2. Garder les dés de son choix et relancer les autres.<br>3. Jusqu’à 3 lancers au total.<br>4. Combiner les dés comme souhaité.<br>5. Résoudre les effets.<br>6. Passer au joueur suivant.</p></div><div class="ruleCard"><h4>COMBINAISONS</h4><p>2 identiques = 0 · 3 = 2 · 4 = 5 · 5 = 9 · 6 = 14 dégâts.<br>Suite de 3 = 0 · suite de 4 = 2 · suite de 5 = 6 · suite de 6 = 10 dégâts + 1 bouclier.<br>3 paires = 1 bouclier · Full Royal = 4 · 2 brelans = 6.</p></div><div class="ruleCard"><h4>LES 1</h4><p>Chaque dé 1 peut récupérer 1 PV, entrer dans une combinaison identique ou participer à une suite.</p></div><div class="ruleCard"><h4>SURCHAUFFE</h4><p>Chaque dé non utilisé inflige sa valeur en dégâts au joueur actif.</p></div><div class="ruleCard"><h4>PORTÉE</h4><p>À 2–3 joueurs : dégâts normaux. À 4 joueurs ou plus, une cible éloignée reçoit 2 dégâts de moins, sans passer sous 0.</p></div><div class="ruleCard"><h4>BOUCLIER</h4><p>Maximum 1 en stock. Il s’active uniquement lorsqu’une attaque ennemie ferait tomber à 0 PV : le joueur reste à 1 PV.</p></div><div class="ruleCard"><h4>RÉSOLUTION</h4><p>Dégâts infligés → dégâts subis → PV récupérés → vérification de fin de partie.</p></div>
+    <div class="rulesTag">LANCEZ • COMBINEZ • ATTAQUEZ • SURVIVEZ !</div>
+    <div id="rulesBody"></div>
   </div>
 </section>
 
@@ -1324,7 +1373,7 @@ input:focus,select:focus{outline:none;border-color:#55d8ff;box-shadow:0 0 10px #
 <!-- Fenêtre modale -->
 <div id="modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
   <div class="modalBox">
-    <div class="modalHead"><h2 id="modalTitle">Journal</h2><button class="btn close" onclick="closeModal()" aria-label="Fermer">×</button></div>
+    <div class="modalHead"><h2 id="modalTitle">Journal</h2></div>
     <div id="modalBody"></div>
   </div>
 </div>
@@ -1362,7 +1411,8 @@ const defaults = {
   sext: 14,
   threePairsShield: 1,
   fullRoyal: 4,
-  twoTriplets: 6,
+  comboRoyal: 7,
+  twoTriplets: 8,
   micro: 0,
   smallStraight: 2,
   largeStraight: 6,
@@ -1397,7 +1447,9 @@ const STORAGE_KEYS = {
   mpConfig: 'sdb_mp_config',
   mpName: 'sdb_mp_name',
   mpDevice: 'sdb_mp_device_id',
-  profile: 'sdb_profile_v1'
+  profile: 'sdb_profile_v1',
+  sound: 'sdb_sound',
+  mpSession: 'sdb_mp_session'
 };
 
 /* localStorage peut lever une exception (mode privé, stockage bloqué) :
@@ -1462,7 +1514,7 @@ let rolls = 0;                 // lancers effectués ce tour
 let phase = 'idle';            // idle | rolling | resolving | handoff | over
 let gameOver = true;
 let logs = [];
-let sound = true;
+let sound = store.get(STORAGE_KEYS.sound, '1') !== '0';   // préférence mémorisée sur l'appareil
 let target = null;             // index de la cible
 let animating = false;         // animation de lancer en cours
 let lastTurnSummary = null;    // résumé du dernier tour joué (fenêtre de passage)
@@ -1563,7 +1615,8 @@ function openModal(title, html, titleColor, hideClose) {
   titleEl.style.color = titleColor || '';
   const closeBtn = document.querySelector('#modal .modalHead .close');
   if (closeBtn) closeBtn.style.display = hideClose ? 'none' : 'inline-flex';
-  $('modalBody').innerHTML = html;
+  // Pas de croix : chaque fenêtre se ferme avec son bouton (FERMER ajouté ici, sauf fenêtres à bouton imposé).
+  $('modalBody').innerHTML = html + (hideClose ? '' : '<button class="btn fullWidth modalCloseBtn" onclick="closeModal()">FERMER</button>');
   $('modal').classList.toggle('inGame', !$('game').classList.contains('hidden'));   // les fenêtres du combat gardent leur style
   $('modal').classList.remove('hidden');
 }
@@ -1592,7 +1645,98 @@ function showPage(id) { PAGES.forEach(p => $(p).classList.toggle('hidden', p !==
 
 function showHome() { showPage('homePage'); refreshPublicRooms(); }
 function openOfflineSetup() { showPage('setup'); renderSetup(); }
-function openRulesPage() { showPage('rulesPage'); }
+/* ===== Page des règles (générée depuis la configuration du moteur) ===== */
+function renderRules() {
+  const dice = vals => `<span class="rdice">${vals.map(v => `<span class="mini"><i class="fimg fimg${v}"></i></span>`).join('')}</span>`;
+  const card = (n, title, inner, cls = '') =>
+    `<section class="rcard ${cls}"><h4><b class="rnum">${n}</b>${title}</h4>${inner}</section>`;
+  const steps = list => `<ol class="rsteps">${list.map((t, i) => `<li><b>${i + 1}</b><span>${t}</span></li>`).join('')}</ol>`;
+  const bullets = list => `<ul class="rlist">${list.map(t => `<li>${t}</li>`).join('')}</ul>`;
+  const note = t => `<div class="rnote">${t}</div>`;
+  const dmg = n => `${n} dégât${n > 1 ? 's' : ''}`;
+
+  // PV de départ : les nombres de joueurs voisins qui ont les mêmes PV sont regroupés (« 4 à 5 joueurs »)
+  const pvRows = [];
+  [2, 3, 4, 5, 6].forEach(n => {
+    const last = pvRows[pvRows.length - 1];
+    if (last && last.pv === cfg.playersPV[n]) last.to = n; else pvRows.push({ from: n, to: n, pv: cfg.playersPV[n] });
+  });
+  const pvHtml = pvRows.map((r, i) =>
+    `<div class="pvRow pv${i}"><span>${r.from === r.to ? r.from : r.from + ' à ' + r.to} joueurs</span><b>${r.pv} PV</b></div>`).join('');
+
+  const row = (name, sub, vals, effect) =>
+    `<div class="rrow"><div class="rname"><b>${name}</b>${sub ? `<small>${sub}</small>` : ''}</div>${dice(vals)}<div class="reffect">${effect}</div></div>`;
+  const identical = [
+    row('Paire', '2 identiques', [3, 3], cfg.pair),
+    row('Brelan', '3 identiques', [3, 3, 3], cfg.triplet),
+    row('Carré', '4 identiques', [3, 3, 3, 3], cfg.quad),
+    row('Quinte', '5 identiques', [3, 3, 3, 3, 3], cfg.quint),
+    row('Sextuplé', '6 identiques', [3, 3, 3, 3, 3, 3], cfg.sext)
+  ].join('');
+  const special = [
+    row('3 paires', '', [2, 2, 3, 3, 5, 5], `${cfg.threePairsShield} bouclier`),
+    row('Full Royal', '1 brelan + 1 paire', [3, 3, 3, 5, 5], dmg(cfg.fullRoyal)),
+    row('Combo Royal', '1 carré + 1 paire', [3, 3, 3, 3, 5, 5], dmg(cfg.comboRoyal)),
+    row('2 brelans', '', [3, 3, 3, 5, 5, 5], dmg(cfg.twoTriplets))
+  ].join('');
+  const straights = [
+    row('Suite de 3 dés', '', [2, 3, 4], cfg.micro),
+    row('Suite de 4 dés', '', [2, 3, 4, 5], dmg(cfg.smallStraight)),
+    row('Suite de 5 dés', '', [1, 2, 3, 4, 5], dmg(cfg.largeStraight)),
+    row('Suite de 6 dés', '', [1, 2, 3, 4, 5, 6], `${dmg(cfg.totalStraight)}<br>+ ${cfg.totalStraightShield} bouclier`)
+  ].join('');
+
+  $('rulesBody').innerHTML = [
+    card(1, 'LE BUT DU JEU', `<p>Réduisez les points de vie (PV) de vos adversaires à 0.</p>${note('Le dernier joueur en vie gagne la partie !')}`),
+    card(2, 'PRÉPARATION', `<p>Chaque joueur commence avec :</p><div class="pvList">${pvHtml}</div>
+      <p>Les 6 dés sont communs à tous les joueurs. Le premier joueur est le joueur n°1.</p>`),
+    card(3, 'UN TOUR DE JEU', steps([
+      'Lancez les 6 dés.',
+      'Gardez les dés qui vous intéressent.',
+      `Relancez les autres dés (jusqu’à ${cfg.maxRolls} lancers au total).`,
+      'Formez vos combinaisons pour attaquer, vous soigner ou obtenir un bouclier.',
+      'Appliquez les effets, puis passez les dés au joueur suivant.'
+    ]) + note('Chaque dé ne peut être utilisé qu’une seule fois !')),
+    card(4, 'LES COMBINAISONS ET LEURS EFFETS', `
+      <div class="rtable red"><div class="rth"><span>DÉS IDENTIQUES</span><span>DÉGÂTS</span></div>${identical}</div>
+      <div class="rtable purple"><div class="rth"><span>COMBINAISONS SPÉCIALES</span><span>EFFET</span></div>${special}</div>
+      <div class="rtable blue"><div class="rth"><span>LES SUITES (DÉS CONSÉCUTIFS)</span><span>EFFET</span></div>${straights}</div>`),
+    card(5, 'LES DÉS QUI AFFICHENT 1 <small>— LES DRONES DE RÉPARATION</small>', `
+      <div class="rhero">${dice([1])}<p>Chaque dé affichant 1 peut être utilisé de deux façons :</p></div>
+      ${bullets([`<b>Se soigner :</b> récupérer ${cfg.healPerOne} PV.`, '<b>Créer une combinaison :</b> utiliser le dé dans une combinaison de dés identiques ou une suite.'])}
+      ${note('Un dé utilisé pour se soigner ne peut pas être utilisé pour attaquer.')}`),
+    card(6, 'ATTENTION À LA SURCHAUFFE !', `
+      <p>Après avoir formé vos combinaisons, chaque dé inutilisé vous inflige des dégâts égaux à sa valeur.</p>
+      <div class="rexample"><b>EXEMPLE :</b><div class="rexDice">${dice([2, 2, 2, 2])}<span class="runused">${dice([4, 5])}</span></div>
+        ${bullets(['Le carré inflige 5 dégâts à un adversaire.', 'Le 4 et le 5 sont inutilisés.', 'Vous subissez donc 9 dégâts de surchauffe.'])}</div>
+      <div class="rwarn">⚠ Les dégâts de surchauffe sont vos propres dégâts : un bouclier ne vous en protège pas !</div>`, 'warn'),
+    card(7, 'LES BOUCLIERS', `${note('Un seul bouclier actif par joueur.')}${bullets([
+      'Vous subissez normalement les dégâts d’une attaque.',
+      `Si cette attaque devait vous faire tomber à 0 PV ou moins, le bouclier est consommé et vous restez à ${cfg.shieldSavePV} PV.`,
+      'Le bouclier ne supprime pas les dégâts.',
+      `Si vous avez déjà un bouclier${cfg.shieldMax === 1 ? ', vous ne pouvez pas en obtenir un deuxième' : ''} : le nouveau bouclier est perdu.`,
+      'Le bouclier ne protège pas contre la surchauffe.'])}`),
+    card(8, 'QUI PEUT-ON ATTAQUER ?', bullets([
+      '<b>À 2 ou 3 joueurs :</b> choisissez votre cible normalement.',
+      `<b>À 4 joueurs ou plus :</b> une cible voisine subit les dégâts normaux ; une cible plus éloignée subit ${cfg.distanceReduction} dégâts de moins, sans passer sous 0.`])),
+    card(9, 'ORDRE DE RÉSOLUTION', `<p>À la fin de votre tour, appliquez les effets dans cet ordre :</p>${steps([
+      'Les dégâts infligés aux adversaires.',
+      'Les dégâts de surchauffe que vous subissez.',
+      'Les PV récupérés grâce aux dés affichant 1 (drones de réparation).'])}
+      ${note('Vous pouvez donc éliminer un adversaire et être éliminé à votre tour par la surchauffe !')}`),
+    card(10, 'FIN DE PARTIE', `<p>Dès qu’un joueur atteint 0 PV, il est éliminé.</p>
+      <p>La partie continue jusqu’à ce qu’il ne reste qu’un seul joueur en vie.</p>${note('Le vainqueur de Space Dice Battle !')}`),
+    card(11, 'EN LIGNE', bullets([
+      'Chaque tour dure 60 secondes. Sans lancer, le tour est passé.',
+      'Un joueur déconnecté est considéré comme ayant confirmé le passage au joueur suivant.',
+      'Après un tour entier passé déconnecté, il est expulsé à son tour suivant s’il est toujours déconnecté.'])),
+    `<div class="rfoot">${[['🎲', 'JE LANCE', `jusqu’à ${cfg.maxRolls} fois.`], ['🎯', 'J’ATTAQUE', 'avec mes combinaisons.'], ['❤️', 'JE ME SOIGNE', 'avec les dés affichant 1.'],
+      ['🛡️', 'JE ME PROTÈGE', 'avec les boucliers.'], ['🔥', 'JE FAIS ATTENTION', 'à la surchauffe.'], ['🏆', 'JE GAGNE', 'en restant le dernier en vie !']]
+      .map(([i, t, d]) => `<div><span>${i}</span><b>${t}</b><small>${d}</small></div>`).join('')}</div>`
+  ].join('');
+}
+
+function openRulesPage() { renderRules(); showPage('rulesPage'); }
 
 /* Bouton « Accueil » de l'en-tête : prévient avant d'abandonner une partie en cours. */
 function goHome() {
@@ -1726,7 +1870,11 @@ function unlockSound() {
 }
 document.addEventListener('pointerdown', unlockSound, { once: true });
 
-function toggleSound() { sound = !sound; render(); }
+function toggleSound() {
+  sound = !sound;
+  store.set(STORAGE_KEYS.sound, sound ? '1' : '0');
+  render();
+}
 
 /* Lancer d'un dé : jeté depuis un côté, il rebondit en tournant sur les trois axes et se pose sur sa face finale. */
 function tumble(el, value, delay = 0, duration = 1250) {
@@ -1897,6 +2045,10 @@ function plans(vals) {
       const used = all.filter(i => c[vals[i]] >= 2);  // le dé seul reste orphelin
       addPlan([{ ix: used, e: { name: 'Full Royal', d: cfg.fullRoyal, s: 0 } }],
         cfg.fullRoyal, 0, used, 80);
+    }
+    if (countOf(4) === 1 && countOf(2) === 1 && occurrences.length === 2) {   // carré + paire
+      addPlan([{ ix: all, e: { name: 'Combo Royal', d: cfg.comboRoyal, s: 0 } }],
+        cfg.comboRoyal, 0, all, 85);
     }
     if (countOf(3) === 2) {
       addPlan([{ ix: all, e: { name: '2 Brelans', d: cfg.twoTriplets, s: 0 } }],
@@ -2111,6 +2263,7 @@ function applyResolve(p) {
   recordResolveStats(p);
 
   const justPlayedIndex = current;
+  mpOfflineAccounting(justPlayedIndex);
   const actor = players[current];
   const hasTarget = p.d > 0 && target != null;
 
@@ -2201,7 +2354,7 @@ function endGame(message) {
   log(message);
   render();
   openModal(MODAL.END, `<div class="modalCenter big"><h2>${esc(message)}</h2>
-    <button class="btn orange" onclick="closeModal();newGame()">NOUVELLE PARTIE</button></div>`);
+    <button class="btn orange" onclick="closeModal();newGame()">NOUVELLE PARTIE</button></div>`, null, true);
   if (mpOnlineMode) setTimeout(() => mpPublishGameSnapshot(true), 180);
 }
 
@@ -2351,6 +2504,7 @@ function pickExpiredPlan() {
 /* Passe le tour du joueur actif sans effet. */
 function skipCurrentTurn() {
   const skipped = current;
+  mpOfflineAccounting(skipped);
   current = nextAlive(current);
   target = null; dice = []; kept = []; rolls = 0;
   lastTurnSummary = null;
@@ -2480,13 +2634,14 @@ function statusText() {
 }
 
 function playerCard(p, i) {
+  const off = mpOnlineMode && p.alive && mpIsOffline(mpRoster[i]?.id);
   const pct = Math.max(0, Math.min(100, p.pv / p.max * 100));
   const color = pct > 60 ? '#3ddc6a' : pct > 30 ? '#ffb23d' : '#ff4a4a';
-  return `<div class="pcard${i === current ? ' active' : ''}${!p.alive ? ' dead' : ''}" style="--c:${safeColor(p.color)}">
+  return `<div class="pcard${i === current ? ' active' : ''}${!p.alive ? ' dead' : ''}${off ? ' offline' : ''}" style="--c:${safeColor(p.color)}">
     <i class="av avt-${avatarOf(p)}"></i>
     <div class="pinfo"><b>${esc(p.name)}</b>
       <div class="hpbar"><i style="width:${pct}%;background:${color}"></i></div>
-      <div class="pmeta"><span>${p.pv} / ${p.max}</span><span class="sh">🛡 ${p.shield}</span></div></div>
+      <div class="pmeta">${off ? '<span class="offTag">⚠ DÉCONNECTÉ</span>' : `<span>${p.pv} / ${p.max}</span><span class="sh">🛡 ${p.shield}</span>`}</div></div>
   </div>`;
 }
 
@@ -2572,7 +2727,8 @@ function renderRecap() {
     ['Quinte', [6, 6, 6, 6, 6], cfg.quint, 0],
     ['Sextuplé', [2, 2, 2, 2, 2, 2], cfg.sext, 0],
     ['3 Paires', [1, 1, 3, 3, 5, 5], 0, cfg.threePairsShield],
-    ['Full Royal', [4, 4, 4, 2, 2, 6], cfg.fullRoyal, 0],
+    ['Full Royal', [4, 4, 4, 2, 2], cfg.fullRoyal, 0],
+    ['Combo Royal', [5, 5, 5, 5, 3, 3], cfg.comboRoyal, 0],
     ['2 Brelans', [2, 2, 2, 5, 5, 5], cfg.twoTriplets, 0],
     ['Micro-suite', [1, 2, 3], cfg.micro, 0],
     ['Petite Suite', [1, 2, 3, 4], cfg.smallStraight, 0],
@@ -2919,7 +3075,7 @@ function openAdmin() {
   const comboDamage = [
     ['pair', 'Paire', '2 dés identiques'], ['triplet', 'Brelan', '3 dés identiques'], ['quad', 'Carré', '4 dés identiques'],
     ['quint', 'Quinte', '5 dés identiques'], ['sext', 'Sextuplé', '6 dés identiques'],
-    ['fullRoyal', 'Full Royal', '4 + 2 + 1 dés identiques'], ['twoTriplets', '2 Brelans', '2 groupes de 3 identiques'],
+    ['fullRoyal', 'Full Royal', 'Brelan + paire'], ['comboRoyal', 'Combo Royal', 'Carré + paire'], ['twoTriplets', '2 Brelans', '2 groupes de 3 identiques'],
     ['micro', 'Micro-suite', 'Suite de 3 dés'], ['smallStraight', 'Petite Suite', 'Suite de 4 dés'],
     ['largeStraight', 'Grande Suite', 'Suite de 5 dés'], ['totalStraight', 'Suite Totale', '1-2-3-4-5-6']
   ];
@@ -3218,7 +3374,7 @@ async function mpCreateRoom() {
     });
     const { error } = await mpClient.from('sdb_rooms').insert({ code, state, host_id: id });
     if (!error) {
-      mpRoom = code; mpPlayer = id;
+      mpRoom = code; mpPlayer = id; mpSaveSession();
       await mpWatchRoom();
       mpRenderLobby(state);
       mpSetStatus('Salon créé. Partage le code avec les autres joueurs.', true);
@@ -3252,7 +3408,7 @@ async function mpJoinRoom(codeArg) {
     const { error: upErr } = await mpClient.from('sdb_rooms').update({ state }).eq('code', code);
     if (upErr) { mpSetStatus('Impossible de rejoindre : ' + upErr.message); return; }
 
-    mpRoom = code; mpPlayer = id;
+    mpRoom = code; mpPlayer = id; mpSaveSession();
     await mpWatchRoom();
     mpRenderLobby(state);
     mpSetStatus('Salon rejoint. Le créateur voit ton arrivée.', true);
@@ -3288,7 +3444,7 @@ async function mpStartRoom() {
   }
 }
 
-async function mpRemovePlayer(playerId) {
+async function mpRemovePlayer(playerId, disconnected = false) {
   if (!mpClient || !mpRoom || !mpPlayer || !playerId) { mpSetStatus('Impossible de retirer ce joueur.'); return; }
   try {
     const { data, error } = await mpClient.from('sdb_rooms').select('state,host_id').eq('code', mpRoom).maybeSingle();
@@ -3302,7 +3458,7 @@ async function mpRemovePlayer(playerId) {
     const { error: upErr } = await mpClient.from('sdb_rooms').update({ state }).eq('code', mpRoom);
     if (upErr) throw upErr;
     mpRenderLobby(state);
-    mpSetStatus(`${removed.name || 'Le joueur'} a été retiré du salon.`, true);
+    mpSetStatus(`${removed.name || 'Le joueur'} a été ${disconnected ? 'expulsé du salon (déconnecté)' : 'retiré du salon'}.`, true);
   } catch (e) {
     mpSetStatus('Retrait impossible : ' + (e.message || 'erreur inconnue'));
   }
@@ -3335,6 +3491,7 @@ function mpResetSession() {
   const channel = mpChannel;
   mpChannel = null;
   if (channel && mpClient) { try { Promise.resolve(mpClient.removeChannel(channel)).catch(() => {}); } catch (e) { /* ignoré */ } }
+  mpClearSession(); mpPresenceReset();
   mpRoom = null; mpPlayer = null; mpStartedAt = null;
   mpOnlineMode = false; mpRoster = []; mpLastRoomState = null;
   mpLastAppliedAt = 0; mpGameRevision = 0; mpLastPublishedSignature = '';
@@ -3361,9 +3518,11 @@ function mpRenderLobby(state) {
   const rows = roster.map(p => {
     const removable = canRemove && p.id !== mpPlayer;
     const safeId = String(p.id).replace(/[^a-zA-Z0-9-]/g, '');
-    return `<div class="setupRow lobbyRow${removable ? ' removable' : ''}">
+    const off = state.status === 'lobby' && mpIsOffline(p.id);
+    const left = off ? Math.max(0, Math.ceil((MP_LOBBY_KICK_MS - (Date.now() - mpAbsentSince[p.id])) / 1000)) : 0;
+    return `<div class="setupRow lobbyRow${removable ? ' removable' : ''}${off ? ' offline' : ''}">
       <span><b style="color:${safeColor(p.color)}">● ${esc(p.name)}</b></span>
-      <span class="role">${p.host ? 'HÔTE' : 'JOUEUR'}${p.id === mpPlayer ? ' • TOI' : ''}</span>
+      <span class="role">${off ? `⚠ DÉCONNECTÉ · ${left} s` : (p.host ? 'HÔTE' : 'JOUEUR') + (p.id === mpPlayer ? ' • TOI' : '')}</span>
       ${removable ? `<button class="btn orange small" onclick="mpRemovePlayer('${safeId}')">RETIRER</button>` : ''}
     </div>`;
   }).join('');
@@ -3413,6 +3572,10 @@ async function mpCopyRoomCode() {
 /* ----- Abonnement au salon ----- */
 
 function mpHandleRoomState(state, announce) {
+  if (mpPlayer && state.status === 'lobby' && Array.isArray(state.players) && !state.players.some(p => p.id === mpPlayer)) {
+    mpKickedFromLobby();   // retiré du salon (par l'hôte ou pour cause de déconnexion)
+    return;
+  }
   mpRenderLobby(state);
   if (announce && state.status !== 'lobby') mpSetStatus('État du salon : ' + state.status, true);
   mpLaunchGame(state);
@@ -3421,10 +3584,12 @@ function mpHandleRoomState(state, announce) {
 
 async function mpWatchRoom() {
   if (mpChannel && mpClient) await mpClient.removeChannel(mpChannel);
-  mpChannel = mpClient.channel('sdb-room-' + mpRoom)
+  mpPresenceReset();
+  mpChannel = mpClient.channel('sdb-room-' + mpRoom, { config: { presence: { key: mpPlayer } } })
     .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'sdb_rooms', filter: 'code=eq.' + mpRoom },
       payload => { if (payload.new?.state) mpHandleRoomState(payload.new.state, true); })
-    .subscribe();
+    .on('presence', { event: 'sync' }, mpOnPresence)
+    .subscribe(status => { if (status === 'SUBSCRIBED') mpTrack(); });
   // Lecture immédiate : le salon a pu être lancé avant l'abonnement.
   try {
     const { data } = await mpClient.from('sdb_rooms').select('state').eq('code', mpRoom).maybeSingle();
@@ -3447,11 +3612,207 @@ function mpLaunchGame(state) {
   setupData = roster.map((p, i) => ({
     name: String(p.name || `Pilote ${i + 1}`).slice(0, 24), human: true, color: p.color || PALETTE[i % PALETTE.length], avatar: validAvatar(p.avatar) || 'p01'
   }));
-  startGame(setupData);
+  // Partie déjà en cours (retour sur la page, appareil en retard) : on ne la relance pas, l'état publié est appliqué juste après.
+  const inProgress = !!(state.gameSnapshot && Array.isArray(state.gameSnapshot.players));
+  if (inProgress) {
+    newSession(); clearHumanTurnTimer(); clearNextPlayerTimer();
+    players = []; dice = []; kept = []; rolls = 0; current = 0;
+    animating = false; fastAIBattle = false; pendingTargetPlan = null; lastTurnSummary = null;
+    profileRecorded = false; gameOver = false; phase = 'rolling'; mpLastAppliedAt = 0;
+    showPage('game');
+    renderRecap();
+  } else {
+    startGame(setupData);
+  }
   mpStartPolling();
   mpSetStatus('Combat ouvert. Synchronisation active : dés, état des vaisseaux et tours.', true);
-  setTimeout(() => { if (mpOnlineMode && !gameOver && mpIsMyTurn()) mpPublishGameSnapshot(true); }, 350);
+  if (!inProgress) setTimeout(() => { if (mpOnlineMode && !gameOver && mpIsMyTurn()) mpPublishGameSnapshot(true); }, 350);
 }
+
+
+/* ----- Présence : qui est en ligne, déconnexions, expulsions, reprise ----- */
+
+const MP_OFFLINE_GRACE_MS = 5000;     // une coupure plus courte est ignorée (pas d'alerte)
+const MP_LOBBY_KICK_MS = 45000;       // dans le salon : expulsion après 45 s de déconnexion
+let mpPresent = new Set();            // identifiants actuellement connectés au salon
+let mpAbsentSince = {};               // identifiant -> instant depuis lequel il est absent
+let mpPresenceReady = false;          // première synchronisation reçue
+let mpKicking = {};                   // expulsions de salon en cours
+let mpPendingSession = null;          // session proposée à la reprise
+
+function mpPresenceReset() { mpPresent = new Set(); mpAbsentSince = {}; mpPresenceReady = false; mpKicking = {}; }
+function mpTrack() { try { if (mpChannel && mpPlayer) mpChannel.track({ id: mpPlayer, at: Date.now() }); } catch (e) { /* ignoré */ } }
+
+const mpRosterIds = () => (mpOnlineMode ? mpRoster : (mpLastRoomState?.players || [])).map(p => p.id);
+
+/* Recalcule depuis quand chaque joueur du salon est absent. */
+function mpUpdateAbsences() {
+  if (!mpPresenceReady) return;
+  const now = Date.now();
+  mpRosterIds().forEach(id => {
+    if (id === mpPlayer || mpPresent.has(id)) delete mpAbsentSince[id];
+    else if (!mpAbsentSince[id]) mpAbsentSince[id] = now;
+  });
+}
+function mpOnPresence() {
+  try { mpPresent = new Set(Object.keys(mpChannel?.presenceState?.() || {})); } catch (e) { return; }
+  mpPresenceReady = true;
+  mpUpdateAbsences();
+  mpRefreshPresenceUI();
+}
+/* Un joueur est « déconnecté » s'il est absent depuis plus de 5 s (jamais soi-même). */
+const mpIsOffline = id => !!id && id !== mpPlayer && mpPresenceReady && !!mpAbsentSince[id] && Date.now() - mpAbsentSince[id] >= MP_OFFLINE_GRACE_MS;
+
+function mpRefreshPresenceUI() {
+  if (mpOnlineMode && players.length) renderPlayers();
+  else if (mpRoom && mpLastRoomState?.status === 'lobby') mpRenderLobby(mpLastRoomState);
+}
+
+/* « Chef » : premier joueur vivant et connecté (hors `excludeSeat`). Lui seul agit pour les joueurs déconnectés. */
+function mpLeaderSeat(excludeSeat) {
+  for (let i = 0; i < mpRoster.length; i++) {
+    const p = players[i];
+    if (i === excludeSeat || !p || !p.alive || p.kicked) continue;
+    if (mpRoster[i].id === mpPlayer || !mpIsOffline(mpRoster[i].id)) return i;
+  }
+  return -1;
+}
+const mpAmLeader = excludeSeat => mpLocalSeat() >= 0 && mpLeaderSeat(excludeSeat) === mpLocalSeat();
+
+/* Règle des tours hors ligne : un tour entier passé déconnecté compte ; au 2e tour déconnecté, le joueur est expulsé.
+   Se reconnecter (même brièvement) remet le cycle à zéro. */
+function mpOfflineAccounting(idx) {
+  if (!mpOnlineMode) return;
+  const p = players[idx], id = mpRoster[idx]?.id;
+  if (!p || !id) return;
+  const continuous = !!p.offStart && !!mpAbsentSince[id] && mpAbsentSince[id] <= (p.offStartAt || 0) + 1000 && mpIsOffline(id);
+  p.offTurns = continuous ? (p.offTurns || 0) + 1 : 0;
+  p.offStart = false;
+}
+
+/* Le joueur suivant est déconnecté : le chef lance son tour à sa place (il ne peut rien faire, les 60 s s'écoulent),
+   ou l'expulse s'il a déjà passé un tour entier hors ligne. */
+function mpStartTurnForOffline(i) {
+  if (!mpHandoff || mpHandoff.nextIndex !== i || gameOver) return;
+  mpHandoffClearTimers();
+  mpHandoff = null; mpHandoffModalStartedAt = 0;
+  if (modalIsOpen(MODAL.NEXT)) hideModal();
+  const p = players[i];
+  phase = 'rolling'; rolls = 0; dice = []; kept = []; target = null; current = i;
+  if ((p.offTurns || 0) >= 1) {
+    p.alive = false; p.kicked = true; p.pv = 0; p.shield = 0;
+    log(`${p.name} a été expulsé de la partie (déconnecté pendant deux tours).`);
+    skipCurrentTurn();
+  } else {
+    p.offStart = true; p.offStartAt = Date.now();
+    humanTurnDeadline = Date.now() + HUMAN_TURN_MS;
+    log(`${p.name} est déconnecté : son tour est passif.`);
+    render();
+  }
+  setTimeout(() => mpPublishGameSnapshot(true), 50);
+}
+
+/* Salon : l'hôte expulse après 45 s ; si l'hôte est absent 45 s, le salon est fermé pour tout le monde. */
+async function mpTick() {
+  if (!mpRoom || !mpPlayer) return;
+  mpUpdateAbsences();
+
+  if (!mpOnlineMode && mpLastRoomState?.status === 'lobby') {
+    const roster = mpLastRoomState.players || [];
+    const host = roster.find(p => p.host);
+    const isHost = !!host && host.id === mpPlayer;
+    const gone = id => !!mpAbsentSince[id] && Date.now() - mpAbsentSince[id] >= MP_LOBBY_KICK_MS;
+    if (!isHost && host && gone(host.id)) { mpHostGone(); return; }
+    if (isHost) {
+      for (const p of roster) {
+        if (p.id !== mpPlayer && gone(p.id) && !mpKicking[p.id]) {
+          mpKicking[p.id] = true;
+          await mpRemovePlayer(p.id, true);
+          delete mpAbsentSince[p.id];
+        }
+      }
+    }
+    if (roster.some(p => mpIsOffline(p.id))) mpRenderLobby(mpLastRoomState);   // décompte visible
+    return;
+  }
+
+  if (mpOnlineMode && !gameOver && mpHandoff) {
+    const nxt = mpHandoff.nextIndex;
+    if (mpIsOffline(mpRoster[nxt]?.id) && mpAmLeader(nxt) && !mpApplyingRemote &&
+        (mpAllAcked(mpHandoff) || Date.now() - Number(mpHandoff.startedAt) >= HANDOFF_MS)) mpStartTurnForOffline(nxt);
+  }
+  if (mpOnlineMode && players.length && mpRoster.some(p => mpIsOffline(p.id))) renderPlayers();   // état « déconnecté » à jour
+}
+setInterval(mpTick, 1000);
+
+async function mpHostGone() {
+  const code = mpRoom;
+  try { if (mpClient && code) await mpClient.from('sdb_rooms').delete().eq('code', code); } catch (e) { /* un autre joueur l'a déjà supprimé */ }
+  mpResetSession();
+  closeModal();
+  mpSetStatus('Salon fermé : le créateur est déconnecté.');
+  openModal('SALON FERMÉ', '<div class="modalCenter"><p>Le créateur du salon est déconnecté depuis plus de 45 secondes : le salon est fermé.</p></div>');
+}
+function mpKickedFromLobby() {
+  mpResetSession();
+  closeModal();
+  mpSetStatus('Tu as été retiré du salon.');
+  openModal('RETIRÉ DU SALON', '<div class="modalCenter"><p>Tu as été retiré du salon (déconnexion de plus de 45 secondes ou décision de l’hôte).</p></div>');
+}
+
+/* ----- Reprise après avoir quitté la page ----- */
+
+function mpSaveSession() { store.set(STORAGE_KEYS.mpSession, JSON.stringify({ code: mpRoom, id: mpPlayer })); }
+function mpClearSession() { store.remove(STORAGE_KEYS.mpSession); }
+
+/* Au démarrage : si cet appareil était dans un salon ou une partie, on propose de reprendre. */
+async function mpCheckResume() {
+  let sess = null;
+  try { sess = JSON.parse(store.get(STORAGE_KEYS.mpSession, 'null')); } catch (e) { sess = null; }
+  if (!sess || !sess.code || !sess.id || !mpClient || mpInRoom()) return;
+  try {
+    const { data } = await mpClient.from('sdb_rooms').select('state').eq('code', sess.code).maybeSingle();
+    const st = data?.state;
+    const over = st?.status === 'playing' && st.gameSnapshot?.gameOver;
+    if (!st || over || !(st.players || []).some(p => p.id === sess.id)) { mpClearSession(); return; }
+    mpPendingSession = { ...sess, status: st.status };
+    openModal('REPRENDRE LA PARTIE', `<div class="modalCenter">
+      <p>${st.status === 'playing' ? 'Une partie est en cours.' : 'Ton salon est toujours ouvert.'}</p>
+      <button class="btn good fullWidth" onclick="mpResumeSession()">▶ REPRENDRE</button>
+      <button class="btn fullWidth mt8" onclick="mpDeclineResume()">QUITTER</button></div>`, null, true);
+  } catch (e) { /* hors ligne : on réessaiera au prochain démarrage */ }
+}
+async function mpResumeSession() {
+  const sess = mpPendingSession;
+  if (!sess) return;
+  mpPendingSession = null;
+  mpRoom = sess.code; mpPlayer = sess.id;
+  closeModal();
+  await mpWatchRoom();
+  if (mpRoom && !mpOnlineMode) { showPage('mpPage'); mpOpenLobbyWindow(); }
+}
+async function mpDeclineResume() {
+  const sess = mpPendingSession;
+  mpPendingSession = null;
+  closeModal();
+  if (sess && sess.status === 'lobby') { mpRoom = sess.code; mpPlayer = sess.id; await mpLeaveRoom(); }
+  else mpClearSession();   // partie en cours : le joueur sera considéré déconnecté
+}
+
+/* Retour sur l'onglet après une absence pendant une partie : re-synchronisation proposée. */
+let mpHiddenAt = 0;
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) { mpHiddenAt = Date.now(); return; }
+  const away = mpHiddenAt ? Date.now() - mpHiddenAt : 0;
+  mpHiddenAt = 0;
+  if (!mpRoom) return;
+  mpTrack();   // annonce de nouveau notre présence
+  if (mpOnlineMode && !gameOver && away >= 5000 && !modalIsOpen('REPRENDRE LA PARTIE')) {
+    openModal('REPRENDRE LA PARTIE', `<div class="modalCenter"><p>Tu as quitté la page pendant la partie.</p>
+      <button class="btn good fullWidth" onclick="mpResumeAfterAway()">▶ REPRENDRE</button></div>`, null, true);
+  }
+});
+function mpResumeAfterAway() { closeModal(); mpTrack(); mpPollGameSnapshot(); }
 
 /* ----- Sièges et tours ----- */
 
@@ -3651,12 +4012,21 @@ function mpMergeRemoteDepartures(snap, wasChoosingTarget) {
 
 /* Après application d'un état complet : fenêtres (fin de partie, passage) et chrono. */
 function mpSyncModalsAfterSnapshot(previousCurrent) {
+  const mySeat = mpLocalSeat();
+  if (!gameOver && mySeat >= 0 && players[mySeat]?.kicked) {   // expulsé pendant une absence
+    if (!modalIsOpen('EXPULSÉ DE LA PARTIE')) {
+      recordProfileResult(true);
+      openModal('EXPULSÉ DE LA PARTIE', `<div class="modalCenter big"><h2>Tu as été expulsé de la partie : deux tours de suite déconnecté.</h2>
+        <button class="btn orange" onclick="mpFinishLeavingGame()">FERMER</button></div>`, '#ff5a4a', true);
+    }
+    return;
+  }
   if (gameOver) {
     recordProfileResult();
     if (!modalIsOpen(MODAL.END)) {
       const winner = logs.length ? logs[logs.length - 1] : 'La partie est terminée.';
       openModal(MODAL.END, `<div class="modalCenter big"><h2>${esc(winner)}</h2>
-        <button class="btn orange" onclick="closeModal();newGame()">NOUVELLE PARTIE</button></div>`);
+        <button class="btn orange" onclick="closeModal();newGame()">NOUVELLE PARTIE</button></div>`, null, true);
     }
   } else if (mpHandoff) {
     stopObserverTimer();
@@ -3706,6 +4076,7 @@ async function mpHandleExpiredRemoteTurn(snap) {
       !Number(snap.turnDeadline) || Date.now() < Number(snap.turnDeadline)) return;
   const activeIndex = Number(snap.current);
   if (!snap.players?.[activeIndex]?.alive) return;
+  if (!mpAmLeader(activeIndex)) return;   // un seul appareil prend le relais, pas de double résolution
   const key = [snap.updatedAt, activeIndex, snap.turnDeadline, snap.rolls].join(':');
   if (mpRemoteTimeoutInFlight || mpRemoteTimeoutKey === key) return;
   mpRemoteTimeoutInFlight = true;
@@ -3739,7 +4110,7 @@ function mpHandoffClearTimers() {
 
 /* Joueurs dont la confirmation est attendue : tous les vivants sauf celui qui vient de jouer. */
 function mpRequiredAckIds(gate, playersList = players) {
-  return mpRoster.filter((p, i) => i !== gate.playedIndex && playersList[i]?.alive !== false).map(p => p.id);
+  return mpRoster.filter((p, i) => i !== gate.playedIndex && playersList[i]?.alive !== false && !mpIsOffline(p.id)).map(p => p.id);   // un joueur déconnecté est considéré comme ayant confirmé
 }
 const mpAckCount = gate => (gate.acks || []).filter(id => mpRequiredAckIds(gate).includes(id)).length;
 const mpAllAcked = gate => { const req = mpRequiredAckIds(gate); return req.length > 0 && req.every(id => (gate.acks || []).includes(id)); };
@@ -3817,6 +4188,7 @@ function mpCompleteHandoff() {
   hideModal();
   phase = 'rolling'; rolls = 0; dice = []; kept = [];
   target = players.length === 2 ? players.findIndex((p, i) => i !== current && p.alive) : null;
+  if (players[current]) { players[current].offTurns = 0; players[current].offStart = false; }   // présent à son tour : cycle remis à zéro
   startTurn();
   setTimeout(() => mpPublishGameSnapshot(true), 180);
 }
@@ -3871,8 +4243,20 @@ function homeSoon(name) {
   openModal('BIENTÔT DISPONIBLE', `<div class="modalCenter"><p>${esc(name)} n’existe pas encore dans le jeu : cette fonction arrive dans une prochaine version.</p></div>`);
 }
 function homeSettings() {
-  sound = !sound;
-  openModal('RÉGLAGES', `<div class="modalCenter"><p>Son : <b>${sound ? 'activé' : 'désactivé'}</b></p><button class="btn" onclick="homeSettings();">${sound ? 'Couper le son' : 'Activer le son'}</button></div>`);
+  openModal('RÉGLAGES', `<div class="modalCenter">
+    <p>Son des lancers : <b id="soundState"></b></p>
+    <button id="soundToggle" class="btn primary" onclick="settingsToggleSound()"></button>
+  </div>`);
+  paintSettingsSound();
+}
+function paintSettingsSound() {
+  $('soundState').textContent = sound ? 'activé' : 'désactivé';
+  $('soundToggle').textContent = sound ? '🔊 Couper le son' : '🔇 Activer le son';
+}
+function settingsToggleSound() {
+  toggleSound();
+  paintSettingsSound();
+  if (sound) playDiceSound();   // petit aperçu du son
 }
 function refreshHomeProfile() {
   $('homeName').textContent = profileName();
@@ -3888,7 +4272,7 @@ document.addEventListener('click', e => { if (!e.target.closest('.colorPop, .col
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeColorPop(); });
 showHome();
 refreshHomeProfile();
-if (window.supabase?.createClient) mpConnect().then(() => { refreshHomeProfile(); refreshPublicRooms(); });
+if (window.supabase?.createClient) mpConnect().then(() => { refreshHomeProfile(); refreshPublicRooms(); mpCheckResume(); });
 </script>
 </body>
 </html>
